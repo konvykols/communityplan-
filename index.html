@@ -97,6 +97,26 @@
     box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 3px 8px rgba(247, 45, 116, 0.15);
   }
 
+  /* Language switch */
+  .lang-switch {
+    display: flex; background: rgba(26, 22, 37, 0.04);
+    padding: 4px; border-radius: 11px; gap: 2px;
+  }
+  .lang-btn {
+    border: 0; background: transparent; font-family: inherit;
+    font-size: 11px; font-weight: 700; color: var(--ink-soft);
+    padding: 7px 10px; min-width: 38px;
+    border-radius: 8px; cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.18s ease;
+  }
+  .lang-btn:hover { color: var(--ink); }
+  .lang-btn.active {
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 3px 8px rgba(247, 45, 116, 0.25);
+  }
+
   .action-btn {
     border: 0; font-family: inherit;
     font-size: 12px; font-weight: 600;
@@ -216,8 +236,37 @@
   .theme-chip.active .chip-inner {
     box-shadow:
       0 0 0 2.5px var(--bg),
-      0 0 0 4.5px var(--ink),
-      0 6px 16px rgba(0,0,0,0.15);
+      0 0 0 4.5px var(--accent),
+      0 6px 16px rgba(247, 45, 116, 0.25);
+  }
+  .theme-chip.is-ci::after {
+    content: '';
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 5px; height: 5px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+    z-index: 2;
+  }
+
+  .theme-section-label {
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 700;
+    margin: 10px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .theme-section-label::before,
+  .theme-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
   }
 
   /* Hex input row */
@@ -642,7 +691,13 @@
     </button>
   </div>
 
-  <button class="action-btn ghost" onclick="resetTemplate()" title="รีเซ็ต">
+  <div class="lang-switch" role="tablist">
+    <button class="lang-btn active" data-lang="th" title="Thai">TH</button>
+    <button class="lang-btn" data-lang="en" title="English">EN</button>
+    <button class="lang-btn" data-lang="zh" title="Chinese">中</button>
+  </div>
+
+  <button class="action-btn ghost" onclick="resetTemplate()" title="Reset">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
     <span>Reset</span>
   </button>
@@ -650,40 +705,40 @@
   <div class="dropdown" id="fileDropdown">
     <button class="action-btn ghost" onclick="toggleFileMenu(event)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <span>ไฟล์</span>
+      <span>File</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px; height:10px; margin-left:-2px;"><polyline points="6 9 12 15 18 9"/></svg>
     </button>
     <div class="dropdown-menu" onclick="event.stopPropagation()">
-      <div class="menu-label">เปิดไฟล์เก่า</div>
+      <div class="menu-label">Open</div>
       <button onclick="triggerImport()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <span>นำเข้าไฟล์ (แก้ต่อ)</span>
+        <span>Import file (continue editing)</span>
       </button>
       <div class="menu-separator"></div>
-      <div class="menu-label">บันทึก</div>
+      <div class="menu-label">Save</div>
       <button onclick="saveWorkingFile()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        <span>เซฟไฟล์ทำงาน (.html)</span>
+        <span>Save working file (.html)</span>
       </button>
       <button onclick="saveHTML()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 13l2 2 4-4"/></svg>
-        <span>เซฟ HTML (ขึ้นเว็บ)</span>
+        <span>Save as HTML (publish)</span>
       </button>
       <button onclick="savePDF()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
-        <span>เซฟ PDF</span>
+        <span>Save as PDF</span>
       </button>
       <div class="menu-separator"></div>
       <button onclick="copyHTML()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        <span>คัดลอก HTML</span>
+        <span>Copy HTML</span>
       </button>
     </div>
   </div>
 
   <button class="action-btn accent" onclick="sendToTeam()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-    <span>ส่งให้ทีม</span>
+    <span>Send to Team</span>
   </button>
 </header>
 
@@ -694,61 +749,64 @@
 <aside class="sidebar" id="sidebar">
   <!-- ═══ Theme ═══ -->
   <div class="sb-section">
-    <div class="sb-label">ธีมสีกรอบ</div>
-    <div class="theme-grid" id="themeGrid"></div>
+    <div class="sb-label">Frame Theme</div>
+    <div class="theme-section-label">Konvy CI</div>
+    <div class="theme-grid" id="themeGridCI"></div>
+    <div class="theme-section-label">More Ideas</div>
+    <div class="theme-grid" id="themeGridExtra"></div>
     <div class="hex-row">
       <div class="hex-swatch" id="themeHexSwatch" style="background:#F72D74;">
         <input type="color" id="themeColorInput" value="#F72D74">
       </div>
       <input type="text" class="hex-input" id="themeHexInput" value="#F72D74" maxlength="7" placeholder="#RRGGBB">
-      <button class="hex-apply" onclick="applyCustomTheme()">ใช้</button>
+      <button class="hex-apply" onclick="applyCustomTheme()">Apply</button>
     </div>
-    <div class="sb-hint">เลือก preset หรือกรอกโค้ดสี HEX เอง — สีกรอบทั้งหมดจะปรับตามอัตโนมัติ</div>
+    <div class="sb-hint">Pick a preset or enter HEX — all frame colors adapt automatically</div>
   </div>
 
   <!-- ═══ Text color ═══ -->
   <div class="sb-section">
-    <div class="sb-label">สีตัวอักษร</div>
+    <div class="sb-label">Text Color</div>
     <div class="color-grid" id="colorGrid"></div>
     <div class="hex-row">
       <div class="hex-swatch" id="textHexSwatch" style="background:#F72D74;">
         <input type="color" id="textColorInput" value="#F72D74">
       </div>
       <input type="text" class="hex-input" id="textHexInput" value="#F72D74" maxlength="7" placeholder="#RRGGBB">
-      <button class="hex-copy" id="textHexCopy" title="คัดลอกโค้ดสี">
+      <button class="hex-copy" id="textHexCopy" title="Copy color code">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
-      <button class="hex-apply" onclick="applyCustomTextColor()">ใช้</button>
+      <button class="hex-apply" onclick="applyCustomTextColor()">Apply</button>
     </div>
-    <div class="sb-hint">เลือกข้อความก่อน แล้วคลิกสีหรือกรอกโค้ด</div>
+    <div class="sb-hint">Select text first, then click a color or enter HEX</div>
   </div>
 
   <!-- ═══ Emoji ═══ -->
   <div class="sb-section">
-    <div class="sb-label">อีโมจิ & สัญลักษณ์</div>
+    <div class="sb-label">Emoji & Symbols</div>
     <div class="emoji-tabs" id="emojiTabs"></div>
     <div class="emoji-grid" id="emojiGrid"></div>
-    <div class="sb-hint">คลิกในข้อความก่อน แล้วคลิกอีโมจิ/สัญลักษณ์</div>
+    <div class="sb-hint">Click in text first, then click an emoji/symbol</div>
   </div>
 
   <!-- ═══ Structure ═══ -->
   <div class="sb-section">
-    <div class="sb-label">โครงสร้าง</div>
+    <div class="sb-label">Structure</div>
     <button class="add-btn" onclick="addGuideline()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      เพิ่มหัวข้อในกรอบบน
+      Add section to top frame
     </button>
-    <div class="sb-hint" style="margin-top:10px;">เพิ่มบรรทัดในกติกา/รางวัล: คลิกท้ายบรรทัดแล้วกด Enter</div>
+    <div class="sb-hint" style="margin-top:10px;">To add a line in rules/rewards: click end of line and press Enter</div>
   </div>
 </aside>
 
-<button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()" title="เครื่องมือ">
+<button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()" title="Tools">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
 </button>
 
 <!-- Floating format toolbar -->
 <div class="format-toolbar" id="formatToolbar">
-  <select class="ft-size" id="ftSize" title="ขนาดฟอนต์">
+  <select class="ft-size" id="ftSize" title="Font size">
     <option value="">Size</option>
     <option value="10">10px</option>
     <option value="11">11px</option>
@@ -762,31 +820,31 @@
     <option value="28">28px</option>
   </select>
   <div class="ft-sep"></div>
-  <button class="ft-btn" data-cmd="bold" title="ตัวหนา (Cmd/Ctrl+B)"><strong>B</strong></button>
-  <button class="ft-btn" data-cmd="italic" title="ตัวเอียง (Cmd/Ctrl+I)"><em>I</em></button>
-  <button class="ft-btn" data-cmd="underline" title="ขีดเส้นใต้ (Cmd/Ctrl+U)"><span style="text-decoration:underline">U</span></button>
-  <button class="ft-btn" data-cmd="strikeThrough" title="ขีดฆ่า"><span style="text-decoration:line-through">S</span></button>
+  <button class="ft-btn" data-cmd="bold" title="Bold (Cmd/Ctrl+B)"><strong>B</strong></button>
+  <button class="ft-btn" data-cmd="italic" title="Italic (Cmd/Ctrl+I)"><em>I</em></button>
+  <button class="ft-btn" data-cmd="underline" title="Underline (Cmd/Ctrl+U)"><span style="text-decoration:underline">U</span></button>
+  <button class="ft-btn" data-cmd="strikeThrough" title="Strikethrough"><span style="text-decoration:line-through">S</span></button>
   <div class="ft-sep"></div>
-  <div class="ft-color-wrap" title="สีตัวอักษร">
+  <div class="ft-color-wrap" title="Text color">
     <div class="ft-color-swatch" id="ftColorSwatch"></div>
     <input type="color" id="ftColor" value="#F72D74">
   </div>
   <div class="ft-sep"></div>
-  <button class="ft-btn" data-cmd="justifyLeft" title="ชิดซ้าย">
+  <button class="ft-btn" data-cmd="justifyLeft" title="Align left">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
   </button>
-  <button class="ft-btn" data-cmd="justifyCenter" title="กึ่งกลาง">
+  <button class="ft-btn" data-cmd="justifyCenter" title="Align center">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
   </button>
-  <button class="ft-btn" data-cmd="justifyRight" title="ชิดขวา">
+  <button class="ft-btn" data-cmd="justifyRight" title="Align right">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
   </button>
   <div class="ft-sep"></div>
-  <div class="ft-range-wrap" title="ระยะห่างระหว่างบรรทัด">
+  <div class="ft-range-wrap" title="Line height">
     <span>⇅</span>
     <input type="range" class="ft-range" id="ftLineHeight" min="10" max="25" step="1" value="15">
   </div>
-  <div class="ft-range-wrap" title="ระยะห่างระหว่างตัวอักษร">
+  <div class="ft-range-wrap" title="Letter spacing">
     <span>⟷</span>
     <input type="range" class="ft-range" id="ftLetterSpacing" min="-2" max="10" step="0.5" value="0">
   </div>
@@ -805,7 +863,7 @@
   <div class="toast-ic">
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
   </div>
-  <span id="toastText">คัดลอก HTML เรียบร้อย</span>
+  <span id="toastText">HTML copied</span>
 </div>
 
 <script>
@@ -889,11 +947,30 @@ function deriveThemeFromHex(accentHex) {
 // THEMES (10 presets)
 // ═══════════════════════════════════════════════════════════
 const THEME_PRESETS = [
-  { key: 'pink',    label: 'Pink',   hex: '#F72D74', preview: 'linear-gradient(135deg,#ff6fa3,#f72d74)' },
-  { key: 'purple',  label: 'Purple', hex: '#A557F4', preview: 'linear-gradient(135deg,#c994ff,#a557f4)' },
-  { key: 'blue',    label: 'Blue',   hex: '#55E5FC', preview: 'linear-gradient(135deg,#a0f0ff,#55e5fc)' },
-  { key: 'green',   label: 'Green',  hex: '#29D494', preview: 'linear-gradient(135deg,#6ee7b8,#29d494)' },
-  { key: 'yellow',  label: 'Yellow', hex: '#FFE01C', preview: 'linear-gradient(135deg,#fff176,#ffe01c)' }
+  // ─── Konvy CI ───
+  { key: 'pink',      label: 'Pink',    hex: '#F72D74', preview: 'linear-gradient(135deg,#ff6fa3,#f72d74)' },
+  { key: 'purple',    label: 'Purple',  hex: '#A557F4', preview: 'linear-gradient(135deg,#c994ff,#a557f4)' },
+  { key: 'blue',      label: 'Blue',    hex: '#55E5FC', preview: 'linear-gradient(135deg,#a0f0ff,#55e5fc)' },
+  { key: 'green',     label: 'Green',   hex: '#29D494', preview: 'linear-gradient(135deg,#6ee7b8,#29d494)' },
+  { key: 'yellow',    label: 'Yellow',  hex: '#FFE01C', preview: 'linear-gradient(135deg,#fff176,#ffe01c)' },
+  // ─── Warm / Beauty ───
+  { key: 'coral',     label: 'Coral',   hex: '#FF6B6B', preview: 'linear-gradient(135deg,#ff9a9a,#ff6b6b)' },
+  { key: 'peach',     label: 'Peach',   hex: '#FF9E7D', preview: 'linear-gradient(135deg,#ffc5a8,#ff9e7d)' },
+  { key: 'rose',      label: 'Rose',    hex: '#E91E63', preview: 'linear-gradient(135deg,#f48fb1,#e91e63)' },
+  { key: 'burgundy',  label: 'Wine',    hex: '#880E4F', preview: 'linear-gradient(135deg,#c2185b,#880e4f)' },
+  { key: 'gold',      label: 'Gold',    hex: '#D4A017', preview: 'linear-gradient(135deg,#f9ca24,#d4a017)' },
+  // ─── Cool / Fresh ───
+  { key: 'mint',      label: 'Mint',    hex: '#4FD1C5', preview: 'linear-gradient(135deg,#a0e8e0,#4fd1c5)' },
+  { key: 'teal',      label: 'Teal',    hex: '#00897B', preview: 'linear-gradient(135deg,#4db6ac,#00897b)' },
+  { key: 'sky',       label: 'Sky',     hex: '#1E88E5', preview: 'linear-gradient(135deg,#64b5f6,#1e88e5)' },
+  { key: 'lavender',  label: 'Lavender',hex: '#9575CD', preview: 'linear-gradient(135deg,#b39ddb,#9575cd)' },
+  { key: 'navy',      label: 'Navy',    hex: '#1A237E', preview: 'linear-gradient(135deg,#3f51b5,#1a237e)' },
+  // ─── Neutral / Bold ───
+  { key: 'charcoal',  label: 'Mono',    hex: '#2C2C2C', preview: 'linear-gradient(135deg,#5d5d5d,#2c2c2c)' },
+  { key: 'brown',     label: 'Cocoa',   hex: '#795548', preview: 'linear-gradient(135deg,#a1887f,#795548)' },
+  { key: 'orange',    label: 'Orange',  hex: '#FF6F00', preview: 'linear-gradient(135deg,#ffa726,#ff6f00)' },
+  { key: 'red',       label: 'Red',     hex: '#E53935', preview: 'linear-gradient(135deg,#ef5350,#e53935)' },
+  { key: 'olive',     label: 'Olive',   hex: '#689F38', preview: 'linear-gradient(135deg,#9ccc65,#689f38)' }
 ];
 
 const ROLE_APPLIER = {
@@ -931,19 +1008,22 @@ const TEXT_COLORS = [
 // EMOJIS + SYMBOLS (7 categories)
 // ═══════════════════════════════════════════════════════════
 const EMOJIS = {
-  'ยอดนิยม':   ['✨','✅','⭐','🌟','💫','🎉','🎁','🏆','🔥','💯','💡','📌','🎯','⚡','❤️','💖','💝','💕','👍','🙌','👏','💪','🎊','🌈','☀️','🌙','⚠️','❗','💥','🧡','💛','💚','💙','💜','🤍','🖤'],
-  'บิวตี้':   ['💄','💅','💋','👜','👠','👗','🌸','🌺','🌹','👑','💍','💎','🧴','🧼','🪞','👸','💆','💆‍♀️','🧖‍♀️','🤳','🌷','🥀','💐','🌻','🌼','👓','🕶️','🎀','👒','🌿','👚','👛','👝','🛍️','🧖'],
-  'สุขภาพ':   ['💪','🏋️','🧘','🏃','🏃‍♀️','🚴','🧘‍♀️','🧗','⚽','🏀','🎾','🏊','🤸','🥊','⛹️','♨️','🏖️','🌊','🏝️','⛱️','🧊','💧','🫧','🍵','🥗','🥙','🍹','☀️','🌴','🥥','🏐','🏸','🏓','⛳','🥋'],
-  'ไลฟ์สไตล์': ['💼','💻','📱','📊','📈','⏰','✍️','📝','📚','📖','🖊️','📎','🖥️','⌨️','📅','🗂️','📋','🎀','🎁','🎈','📢','🔔','🔑','💳','💰','💵','🛒','🛍️','🎭','🎨','🖼️','✂️','📐','📏','🧮'],
-  'อาหาร':    ['🍔','🍕','🍣','🍜','🍱','🍛','🥗','🥙','🍰','🍩','🧁','🍪','🍎','🍓','🥭','🍑','🍇','🍊','🍍','🍌','🥑','🥥','☕','🍵','🍹','🍺','🧃','🍦','🥛','🍯','🍲','🍝','🥘','🍚','🍙'],
-  'ธรรมชาติ': ['🌸','🌺','🌻','🌷','🌹','🌼','🍀','🌿','🌱','🌾','🍃','🌳','🌲','🌴','🌵','🌊','🌅','🌄','🌠','🌙','☀️','⭐','🌟','⚡','🔥','💧','🌈','❄️','☁️','🌤️','🌦️','🌧️','⛅','🌬️','🌋'],
-  'สัญลักษณ์': ['✿','❀','❁','✾','❃','❋','✽','❂','❄','❅','❆','✦','✧','✩','✪','✫','✬','✭','✮','✯','✰','★','☆','✩','❖','♥','♡','❤','❥','❦','❧','✓','✔','✗','✘','❝','❞','→','←','↑','↓','➜','➟','➤','➥','✦','❂','❖']
+  'Popular':   ['✨','✅','⭐','🌟','💫','🎉','🎁','🏆','🔥','💯','💡','📌','🎯','⚡','❤️','💖','💝','💕','👍','🙌','👏','💪','🎊','🌈','☀️','🌙','⚠️','❗','💥','🧡','💛','💚','💙','💜','🤍','🖤'],
+  'Beauty':    ['💄','💅','💋','👜','👠','👗','🌸','🌺','🌹','👑','💍','💎','🧴','🧼','🪞','👸','💆','💆‍♀️','🧖‍♀️','🤳','🌷','🥀','💐','🌻','🌼','👓','🕶️','🎀','👒','🌿','👚','👛','👝','🛍️','🧖'],
+  'Wellness':  ['💪','🏋️','🧘','🏃','🏃‍♀️','🚴','🧘‍♀️','🧗','⚽','🏀','🎾','🏊','🤸','🥊','⛹️','♨️','🏖️','🌊','🏝️','⛱️','🧊','💧','🫧','🍵','🥗','🥙','🍹','☀️','🌴','🥥','🏐','🏸','🏓','⛳','🥋'],
+  'Lifestyle': ['💼','💻','📱','📊','📈','⏰','✍️','📝','📚','📖','🖊️','📎','🖥️','⌨️','📅','🗂️','📋','🎀','🎁','🎈','📢','🔔','🔑','💳','💰','💵','🛒','🛍️','🎭','🎨','🖼️','✂️','📐','📏','🧮'],
+  'Food':      ['🍔','🍕','🍣','🍜','🍱','🍛','🥗','🥙','🍰','🍩','🧁','🍪','🍎','🍓','🥭','🍑','🍇','🍊','🍍','🍌','🥑','🥥','☕','🍵','🍹','🍺','🧃','🍦','🥛','🍯','🍲','🍝','🥘','🍚','🍙'],
+  'Nature':    ['🌸','🌺','🌻','🌷','🌹','🌼','🍀','🌿','🌱','🌾','🍃','🌳','🌲','🌴','🌵','🌊','🌅','🌄','🌠','🌙','☀️','⭐','🌟','⚡','🔥','💧','🌈','❄️','☁️','🌤️','🌦️','🌧️','⛅','🌬️','🌋'],
+  'Symbols':   ['✿','❀','❁','✾','❃','❋','✽','❂','❄','❅','❆','✦','✧','✩','✪','✫','✬','✭','✮','✯','✰','★','☆','✩','❖','♥','♡','❤','❥','❦','❧','✓','✔','✗','✘','❝','❞','→','←','↑','↓','➜','➟','➤','➥','✦','❂','❖']
 };
+
+let currentEmojiTab = 'Popular';
 
 // ═══════════════════════════════════════════════════════════
 // TEMPLATE HTML
 // ═══════════════════════════════════════════════════════════
-const INITIAL_HTML = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#F72D74; text-align:center; line-height:1.5; font-weight:bold;">
+// Default template per language — each language has its own placeholder text
+const INITIAL_HTML_TH = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#F72D74; text-align:center; line-height:1.5; font-weight:bold;">
   ✨ หัวข้อแคมเปญ ✨<br>#แฮชแท็กแคมเปญ
 </p>
 
@@ -1007,6 +1087,138 @@ const INITIAL_HTML = `<p data-role="title" contenteditable="true" style="font-si
 
 </div>`;
 
+const INITIAL_HTML_EN = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#F72D74; text-align:center; line-height:1.5; font-weight:bold;">
+  ✨ Campaign Title ✨<br>#CampaignHashtag
+</p>
+
+<div data-role="frame1" style="margin-bottom:12px; background-color:#ffffff; padding:12px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(247,45,116,0.1);">
+
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed #fab6d0;">
+    <span style="font-size:15px; margin-right:8px;">💡</span>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#c2185b; font-size:13px;">Content Guidelines</strong>
+  </div>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>Topic 1</strong><br>
+    • Topic description — click to edit
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>Topic 2</strong><br>
+    • Topic description — click to edit
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>Topic 3</strong><br>
+    • Topic description — click to edit
+  </p>
+</div>
+
+<div data-role="frame2" style="margin-bottom:12px; background-color:#fff5f8; padding:12px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+
+  <div style="display:flex; align-items:center; margin-bottom:6px;">
+    <span style="font-size:15px; margin-right:8px;">✅</span>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#c2185b; font-size:13px;">Rules & Conditions</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
+    1. <strong>Photo post:</strong> rule details<br>
+    2. <strong>Video post:</strong> rule details<br>
+    3. <strong>Content requirement:</strong> rule details<br>
+    4. <strong>Hashtag rule:</strong> rule details
+  </p>
+
+  <div data-role="hashtag" contenteditable="true" style="margin-top:10px; padding:8px 10px; background-color:#ffffff; border-left:4px solid #F72D74; border-radius:10px; font-size:12px; color:#5d4037;">
+    💡 Use hashtag <strong data-role="hashtag-strong" style="color:#c2185b;">#CampaignHashtag</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; margin:12px 0 6px;">
+    <span style="font-size:15px; margin-right:8px;">🎁</span>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#F72D74; font-size:13px;">Rewards</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
+    <strong>1. Participation reward</strong><br>
+    • Reward details<br><br>
+
+    <strong>2. Special reward</strong><br>
+    • Reward details
+  </p>
+
+  <p data-role="footnote" contenteditable="true" style="font-size:10px; line-height:1.5; margin:8px 0 0; color:#8d6e63;">
+    *Terms and conditions apply. The company's decision is final.
+  </p>
+
+</div>`;
+
+const INITIAL_HTML_ZH = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#F72D74; text-align:center; line-height:1.5; font-weight:bold;">
+  ✨ 活动标题 ✨<br>#活动话题标签
+</p>
+
+<div data-role="frame1" style="margin-bottom:12px; background-color:#ffffff; padding:12px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(247,45,116,0.1);">
+
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed #fab6d0;">
+    <span style="font-size:15px; margin-right:8px;">💡</span>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#c2185b; font-size:13px;">内容创作指南</strong>
+  </div>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>主题一</strong><br>
+    • 主题描述 — 点击编辑
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>主题二</strong><br>
+    • 主题描述 — 点击编辑
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>主题三</strong><br>
+    • 主题描述 — 点击编辑
+  </p>
+</div>
+
+<div data-role="frame2" style="margin-bottom:12px; background-color:#fff5f8; padding:12px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+
+  <div style="display:flex; align-items:center; margin-bottom:6px;">
+    <span style="font-size:15px; margin-right:8px;">✅</span>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#c2185b; font-size:13px;">活动规则与条件</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
+    1. <strong>图片发布:</strong> 规则详情<br>
+    2. <strong>视频发布:</strong> 规则详情<br>
+    3. <strong>内容要求:</strong> 规则详情<br>
+    4. <strong>话题标签规则:</strong> 规则详情
+  </p>
+
+  <div data-role="hashtag" contenteditable="true" style="margin-top:10px; padding:8px 10px; background-color:#ffffff; border-left:4px solid #F72D74; border-radius:10px; font-size:12px; color:#5d4037;">
+    💡 使用话题标签 <strong data-role="hashtag-strong" style="color:#c2185b;">#活动话题标签</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; margin:12px 0 6px;">
+    <span style="font-size:15px; margin-right:8px;">🎁</span>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#F72D74; font-size:13px;">活动奖励</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
+    <strong>1. 参与奖</strong><br>
+    • 奖励详情<br><br>
+
+    <strong>2. 特别奖</strong><br>
+    • 奖励详情
+  </p>
+
+  <p data-role="footnote" contenteditable="true" style="font-size:10px; line-height:1.5; margin:8px 0 0; color:#8d6e63;">
+    *条款与条件适用。本公司保留最终决定权。
+  </p>
+
+</div>`;
+
+const INITIAL_BY_LANG = { th: INITIAL_HTML_TH, en: INITIAL_HTML_EN, zh: INITIAL_HTML_ZH };
+// Legacy alias for existing code paths
+const INITIAL_HTML = INITIAL_HTML_TH;
+
 const NEW_GUIDELINE_HTML = `<p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
     ✨ <strong>หัวข้อใหม่</strong><br>
     • คำอธิบายที่นี่ คลิกเพื่อแก้ไข
@@ -1016,6 +1228,14 @@ const NEW_GUIDELINE_HTML = `<p data-role="guideline" contenteditable="true" styl
 const WORKING_FILE_MARKER = '<!-- KONVY_EDITOR_WORKING_FILE -->';
 const CONTENT_START = '<!-- EDITOR_CONTENT_START -->';
 const CONTENT_END = '<!-- EDITOR_CONTENT_END -->';
+
+// Per-language markers for multi-language working files
+const LANG_MARKERS = {
+  th: { start: '<!-- LANG_TH_START -->', end: '<!-- LANG_TH_END -->' },
+  en: { start: '<!-- LANG_EN_START -->', end: '<!-- LANG_EN_END -->' },
+  zh: { start: '<!-- LANG_ZH_START -->', end: '<!-- LANG_ZH_END -->' }
+};
+const LANG_LABELS = { th: 'Thai', en: 'English', zh: 'Chinese' };
 
 // ═══════════════════════════════════════════════════════════
 // DOM refs
@@ -1033,6 +1253,10 @@ const importInputEl = document.getElementById('importInput');
 
 let currentThemeHex = '#F72D74';
 let savedRange = null;
+
+// ─── Multi-language state ───
+let currentLang = 'th';
+const langContent = { th: null, en: null, zh: null };
 
 // ═══════════════════════════════════════════════════════════
 // HELPERS
@@ -1100,16 +1324,16 @@ function attachGuidelineControls() {
     const btn = document.createElement('button');
     btn.className = 'row-delete';
     btn.innerHTML = '×';
-    btn.title = 'ลบหัวข้อนี้';
+    btn.title = 'Delete this section';
     btn.contentEditable = 'false';
     btn.addEventListener('mousedown', (e) => e.preventDefault());
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const guidelines = templateEl.querySelectorAll('[data-role="guideline"]');
-      if (guidelines.length <= 1) { showToast('ต้องมีอย่างน้อย 1 หัวข้อ'); return; }
-      if (confirm('ลบหัวข้อนี้?')) {
+      if (guidelines.length <= 1) { showToast('Must have at least 1 section'); return; }
+      if (confirm('Delete this section?')) {
         g.remove();
-        showToast('ลบหัวข้อแล้ว');
+        showToast('Section deleted');
       }
     });
     g.appendChild(btn);
@@ -1120,21 +1344,25 @@ function attachGuidelineControls() {
 // THEME
 // ═══════════════════════════════════════════════════════════
 function renderThemeChips() {
-  const grid = document.getElementById('themeGrid');
-  grid.innerHTML = '';
-  THEME_PRESETS.forEach(p => {
+  const ciGrid = document.getElementById('themeGridCI');
+  const extraGrid = document.getElementById('themeGridExtra');
+  ciGrid.innerHTML = '';
+  extraGrid.innerHTML = '';
+
+  THEME_PRESETS.forEach((p, idx) => {
     const btn = document.createElement('button');
     btn.className = 'theme-chip' + (p.hex.toLowerCase() === currentThemeHex.toLowerCase() ? ' active' : '');
+    if (idx < 5) btn.classList.add('is-ci');
     btn.innerHTML = `<div class="chip-inner" style="background:${p.preview};">${p.label}</div>`;
-    btn.title = `${p.label} ${p.hex}`;
+    btn.title = `${p.label} · ${p.hex}`;
     btn.addEventListener('click', () => applyThemeByHex(p.hex, p.label));
-    grid.appendChild(btn);
+    (idx < 5 ? ciGrid : extraGrid).appendChild(btn);
   });
 }
 
 function applyThemeByHex(hex, label, silent) {
   const norm = normalizeHex(hex);
-  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง', { error: true }); return; }
+  if (!norm) { showToast('Invalid hex code', { error: true }); return; }
   currentThemeHex = norm;
   const theme = deriveThemeFromHex(norm);
   templateEl.querySelectorAll('[data-role]').forEach(el => {
@@ -1147,19 +1375,21 @@ function applyThemeByHex(hex, label, silent) {
   document.getElementById('themeHexSwatch').style.background = norm;
   // Update preset active
   document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('active'));
-  const preset = THEME_PRESETS.find(p => p.hex.toLowerCase() === norm.toLowerCase());
-  if (preset) {
-    const idx = THEME_PRESETS.indexOf(preset);
-    const chips = document.querySelectorAll('.theme-chip');
-    if (chips[idx]) chips[idx].classList.add('active');
+  const idx = THEME_PRESETS.findIndex(p => p.hex.toLowerCase() === norm.toLowerCase());
+  if (idx !== -1) {
+    const gridId = idx < 5 ? 'themeGridCI' : 'themeGridExtra';
+    const localIdx = idx < 5 ? idx : idx - 5;
+    const grid = document.getElementById(gridId);
+    const chips = grid ? grid.querySelectorAll('.theme-chip') : [];
+    if (chips[localIdx]) chips[localIdx].classList.add('active');
   }
-  if (!silent) showToast(label ? `ธีม ${label}` : `เปลี่ยนธีมเป็น ${norm}`);
+  if (!silent) showToast(label ? `${label} theme` : `Theme changed to ${norm}`);
 }
 
 function applyCustomTheme() {
   const input = document.getElementById('themeHexInput').value;
   const norm = normalizeHex(input);
-  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง (ตย. #F72D74)', { error: true }); return; }
+  if (!norm) { showToast('Invalid hex code (e.g. #F72D74)', { error: true }); return; }
   applyThemeByHex(norm);
 }
 
@@ -1216,20 +1446,20 @@ function applyTextColor(color) {
   restoreSelection();
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-    showToast('กรุณาเลือกข้อความก่อน');
+    showToast('Please select text first');
     return;
   }
   try {
     document.execCommand('styleWithCSS', false, true);
     document.execCommand('foreColor', false, color);
-    showToast('เปลี่ยนสีแล้ว');
+    showToast('Color applied');
   } catch (e) { console.error(e); }
 }
 
 function applyCustomTextColor() {
   const input = document.getElementById('textHexInput').value;
   const norm = normalizeHex(input);
-  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง', { error: true }); return; }
+  if (!norm) { showToast('Invalid hex code', { error: true }); return; }
   applyTextColor(norm);
 }
 
@@ -1237,13 +1467,13 @@ function clearTextColor() {
   restoreSelection();
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-    showToast('กรุณาเลือกข้อความก่อน');
+    showToast('Please select text first');
     return;
   }
   try {
     document.execCommand('styleWithCSS', false, true);
     document.execCommand('removeFormat', false, null);
-    showToast('ล้างสีแล้ว');
+    showToast('Color cleared');
   } catch (e) { console.error(e); }
 }
 
@@ -1272,17 +1502,16 @@ document.getElementById('textHexCopy').addEventListener('click', () => {
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(ta);
-    showToast(`คัดลอก ${hex} แล้ว`);
+    showToast(`${hex} copied`);
   };
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(hex).then(() => showToast(`คัดลอก ${hex} แล้ว`)).catch(fallback);
+    navigator.clipboard.writeText(hex).then(() => showToast(`${hex} copied`)).catch(fallback);
   } else { fallback(); }
 });
 
 // ═══════════════════════════════════════════════════════════
 // EMOJI PICKER
 // ═══════════════════════════════════════════════════════════
-let currentEmojiTab = 'ยอดนิยม';
 function renderEmojiPicker() {
   const tabsEl = document.getElementById('emojiTabs');
   const gridEl = document.getElementById('emojiGrid');
@@ -1299,7 +1528,7 @@ function renderEmojiPicker() {
     const b = document.createElement('button');
     b.className = 'emoji-btn';
     b.textContent = em;
-    b.title = 'คลิกเพื่อเพิ่ม';
+    b.title = 'Click to add';
     b.addEventListener('mousedown', (e) => e.preventDefault());
     b.addEventListener('click', () => insertEmoji(em));
     gridEl.appendChild(b);
@@ -1315,10 +1544,10 @@ function insertEmoji(emoji) {
     const newSel = window.getSelection();
     if (newSel.rangeCount > 0) savedRange = newSel.getRangeAt(0).cloneRange();
   } else {
-    const fallback = () => showToast(`${emoji} (คลิกที่ข้อความในเทมเพลตก่อน)`);
+    const fallback = () => showToast(`${emoji} (click in template text first)`);
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(emoji)
-        .then(() => showToast(`คัดลอก ${emoji} แล้ว ไปวางได้เลย`))
+        .then(() => showToast(`${emoji} copied — paste anywhere`))
         .catch(fallback);
     } else { fallback(); }
   }
@@ -1429,7 +1658,7 @@ document.getElementById('ftSize').addEventListener('change', (e) => {
   restoreSelection();
   const sel = window.getSelection();
   if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-    showToast('กรุณาเลือกข้อความก่อน');
+    showToast('Please select text first');
     e.target.value = '';
     return;
   }
@@ -1496,7 +1725,7 @@ function addGuideline() {
   frame1.appendChild(newP);
   attachGuidelineControls();
   newP.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  showToast('เพิ่มหัวข้อใหม่แล้ว');
+  showToast('New section added');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1523,6 +1752,36 @@ document.querySelectorAll('.device-btn').forEach(btn => {
     frameLabelEl.textContent = labels[btn.dataset.device];
   });
 });
+
+// ═══════════════════════════════════════════════════════════
+// LANGUAGE SWITCH
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    if (lang === currentLang) return;
+    switchLanguage(lang);
+  });
+});
+
+function switchLanguage(newLang) {
+  // Save current language's content
+  langContent[currentLang] = getEditableHTML();
+
+  // Switch active state
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.lang-btn[data-lang="${newLang}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  currentLang = newLang;
+
+  // Load new language's content (or initial template if first visit)
+  const htmlToLoad = langContent[newLang] || INITIAL_BY_LANG[newLang];
+  mountTemplate(htmlToLoad);
+  applyThemeByHex(currentThemeHex, null, true);
+
+  showToast(`${LANG_LABELS[newLang]} version`);
+}
 
 // ═══════════════════════════════════════════════════════════
 // PASTE & ENTER
@@ -1564,36 +1823,70 @@ importInputEl.addEventListener('change', (e) => {
   reader.onload = (ev) => {
     const text = ev.target.result;
     let content = null;
-    // Try marker-based extraction (working file)
+    let langBundleFound = false;
+
+    // ─── Try multi-language bundle first ───
+    const langBundleStart = text.indexOf('<!-- LANGUAGE_BUNDLE_START -->');
+    const langBundleEnd = text.indexOf('<!-- LANGUAGE_BUNDLE_END -->');
+    if (langBundleStart !== -1 && langBundleEnd !== -1) {
+      const bundleText = text.substring(langBundleStart, langBundleEnd);
+      let found = 0;
+      ['th', 'en', 'zh'].forEach(l => {
+        const m = LANG_MARKERS[l];
+        const sIdx = bundleText.indexOf(m.start);
+        const eIdx = bundleText.indexOf(m.end);
+        if (sIdx !== -1 && eIdx !== -1 && eIdx > sIdx) {
+          langContent[l] = bundleText.substring(sIdx + m.start.length, eIdx).trim();
+          found++;
+        }
+      });
+      if (found > 0) langBundleFound = true;
+    }
+
+    // ─── Fallback: single-language format ───
     const startIdx = text.indexOf(CONTENT_START);
     const endIdx = text.indexOf(CONTENT_END);
     if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
       content = text.substring(startIdx + CONTENT_START.length, endIdx).trim();
-    } else {
-      // Fallback: try to extract body or detect data-role elements
+    } else if (!langBundleFound) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
-      // Look for a #template div or any element with data-role
       const container = doc.querySelector('#template');
       if (container) {
         content = container.innerHTML;
       } else {
         const rolesFound = doc.querySelectorAll('[data-role]');
         if (rolesFound.length > 0) {
-          // Find common ancestor or just use body
           content = doc.body.innerHTML;
         } else {
-          showToast('ไม่พบข้อมูล editor ในไฟล์นี้', { error: true });
+          showToast('No editor data found in this file', { error: true });
           return;
         }
       }
     }
-    if (content) {
-      if (confirm('นำเข้าไฟล์นี้? ข้อมูลปัจจุบันจะถูกแทนที่')) {
-        mountTemplate(content);
-        // Try to detect theme from imported content
+
+    // Determine which language to show: from meta tag, or active, or th
+    let targetLang = currentLang;
+    const metaMatch = text.match(/<meta\s+name=["']konvy-editor-lang["']\s+content=["'](\w+)["']/);
+    if (metaMatch && LANG_MARKERS[metaMatch[1]]) targetLang = metaMatch[1];
+
+    if (confirm('Import this file? Current content will be replaced.')) {
+      if (langBundleFound) {
+        // Multi-language bundle: switch to target lang and load it
+        currentLang = targetLang;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.querySelector(`.lang-btn[data-lang="${targetLang}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+        mountTemplate(langContent[targetLang] || content || INITIAL_BY_LANG[targetLang]);
         detectAndSyncTheme();
-        showToast('นำเข้าไฟล์สำเร็จ ✓');
+        const count = Object.values(langContent).filter(c => c).length;
+        showToast(`File imported ✓ (${count} language${count > 1 ? 's' : ''})`);
+      } else if (content) {
+        // Single-language file: load into current language slot
+        langContent[currentLang] = content;
+        mountTemplate(content);
+        detectAndSyncTheme();
+        showToast('File imported ✓');
       }
     }
   };
@@ -1636,44 +1929,63 @@ function copyHTML() {
     document.body.appendChild(ta); ta.select();
     try { document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(ta);
-    showToast('คัดลอก HTML เรียบร้อย');
+    showToast('HTML copied');
   };
   if (navigator.clipboard && window.isSecureContext) {
-    navigator.clipboard.writeText(html).then(() => showToast('คัดลอก HTML เรียบร้อย')).catch(fallback);
+    navigator.clipboard.writeText(html).then(() => showToast('HTML copied')).catch(fallback);
   } else { fallback(); }
   fileDropdownEl.classList.remove('open');
 }
 
 function saveWorkingFile() {
-  const editableHTML = getEditableHTML();
+  // Capture current editor state into the active language slot
+  langContent[currentLang] = getEditableHTML();
+
+  // Build bundle: include whatever has been created (use initial template for untouched slots)
+  const bundle = ['th', 'en', 'zh'].map(l => {
+    const html = langContent[l] || INITIAL_BY_LANG[l];
+    const m = LANG_MARKERS[l];
+    return `${m.start}\n${html}\n${m.end}`;
+  }).join('\n\n');
+
+  // Preview = current active language
+  const previewHTML = getCleanHTML();
+
   const fullDoc = `<!DOCTYPE html>
-<html lang="th">
+<html lang="${currentLang === 'zh' ? 'zh' : currentLang}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${CAMPAIGN_NAME} — ไฟล์ทำงาน</title>
+<title>${CAMPAIGN_NAME} — Working File</title>
 ${WORKING_FILE_MARKER}
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<meta name="konvy-editor-lang" content="${currentLang}">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: 'IBM Plex Sans Thai', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px 14px; background: #f5f5f5; -webkit-font-smoothing: antialiased; }
+  body { font-family: 'IBM Plex Sans Thai', 'Noto Sans SC', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px 14px; background: #f5f5f5; -webkit-font-smoothing: antialiased; }
   .editor-notice { background: #fff3cd; border: 1px solid #ffe69c; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #664d03; margin-bottom: 16px; }
+  .editor-notice strong { color: #F72D74; }
 </style>
 </head>
 <body>
 <div class="editor-notice">
-  📝 <strong>ไฟล์ทำงาน Konvy Editor</strong><br>
-  ไฟล์นี้เปิดดูได้ปกติ หรือเปิด Editor แล้วกด "นำเข้าไฟล์" เพื่อแก้ต่อ
+  📝 <strong>Konvy Editor Working File</strong><br>
+  This file contains all language versions (TH/EN/ZH). Open this file, then click "Import file" in the Editor to continue editing.
 </div>
 <div id="template">
 ${CONTENT_START}
-${editableHTML}
+${previewHTML}
 ${CONTENT_END}
 </div>
+<!-- LANGUAGE_BUNDLE_START -->
+<script type="application/x-konvy-lang-bundle">
+${bundle}
+<\/script>
+<!-- LANGUAGE_BUNDLE_END -->
 </body>
 </html>`;
   const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
   downloadBlob(blob, `${FILE_PREFIX}-working-${getDateStr()}.html`);
-  showToast('เซฟไฟล์ทำงานเรียบร้อย ✓');
+  showToast('Working file saved ✓');
   fileDropdownEl.classList.remove('open');
 }
 
@@ -1698,17 +2010,17 @@ ${bodyHTML}
 </html>`;
   const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
   downloadBlob(blob, `${FILE_PREFIX}-${getDateStr()}.html`);
-  showToast('เซฟ HTML เรียบร้อย');
+  showToast('HTML saved');
   fileDropdownEl.classList.remove('open');
 }
 
 async function savePDF() {
   fileDropdownEl.classList.remove('open');
   if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
-    showToast('กำลังโหลด library... กรุณาลองอีกครั้ง');
+    showToast('Loading libraries... please try again');
     return;
   }
-  showToast('กำลังสร้าง PDF...', { loading: true });
+  showToast('Generating PDF...', { loading: true });
 
   const RENDER_WIDTH = 420;
   const renderContainer = document.createElement('div');
@@ -1759,11 +2071,11 @@ async function savePDF() {
     }
     pdf.save(`${FILE_PREFIX}-${getDateStr()}.pdf`);
     hideToast();
-    setTimeout(() => showToast('เซฟ PDF เรียบร้อย'), 100);
+    setTimeout(() => showToast('PDF saved'), 100);
   } catch (err) {
     console.error(err);
     hideToast();
-    setTimeout(() => showToast('เกิดข้อผิดพลาดในการสร้าง PDF', { error: true }), 100);
+    setTimeout(() => showToast('PDF generation failed', { error: true }), 100);
   } finally {
     document.body.removeChild(renderContainer);
   }
@@ -1775,20 +2087,20 @@ async function sendToTeam() {
   saveHTML();
   await savePDF();
   setTimeout(() => {
-    const subject = encodeURIComponent(`[${CAMPAIGN_NAME}] ส่งคอนเทนต์`);
+    const subject = encodeURIComponent(`[${CAMPAIGN_NAME}] Content for Review`);
     const body = encodeURIComponent(
-`สวัสดีค่ะ
+`Hi team,
 
-ส่งคอนเทนต์ ${CAMPAIGN_NAME} ที่แก้ไขแล้วมาให้รีวิวค่ะ
+Please find the ${CAMPAIGN_NAME} content attached for review.
 
-📎 ไฟล์ที่แนบ:
-   1. ไฟล์ทำงาน (.html) - สำหรับเปิดใน Editor แก้ต่อ
-   2. HTML สำเร็จ (.html) - สำหรับขึ้นเว็บ
-   3. PDF - สำหรับพรีวิว
+📎 Attached files:
+   1. Working file (.html) — to reopen in the Editor for further edits
+   2. Published HTML (.html) — ready to paste into the website
+   3. PDF — for preview / approval
 
-กรุณาแนบไฟล์ที่ดาวน์โหลดไว้ก่อนส่ง
+Please attach the downloaded files before sending.
 
-ขอบคุณค่ะ`
+Thanks!`
     );
     window.location.href = `mailto:${SEND_TO_EMAIL}?subject=${subject}&body=${body}`;
   }, 600);
@@ -1798,15 +2110,22 @@ async function sendToTeam() {
 // RESET
 // ═══════════════════════════════════════════════════════════
 function resetTemplate() {
-  if (confirm('รีเซ็ต template กลับค่าเริ่มต้น?\nข้อมูลที่แก้ไขจะหายทั้งหมด')) {
+  if (confirm('Reset template to default?\nAll edits (in all languages) will be lost.')) {
     currentThemeHex = '#F72D74';
+    currentLang = 'th';
+    langContent.th = null;
+    langContent.en = null;
+    langContent.zh = null;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const thBtn = document.querySelector('.lang-btn[data-lang="th"]');
+    if (thBtn) thBtn.classList.add('active');
     mountTemplate();
     renderThemeChips();
     document.getElementById('themeHexInput').value = '#F72D74';
     document.getElementById('themeColorInput').value = '#F72D74';
     document.getElementById('themeHexSwatch').style.background = '#F72D74';
     applyThemeByHex('#F72D74');
-    showToast('รีเซ็ตเรียบร้อย');
+    showToast('Reset complete');
   }
 }
 
