@@ -422,6 +422,141 @@
   }
   .sb-backdrop.show { display: block; }
 
+  /* ═══ iPhone Frame ═══ */
+  .phone-shell {
+    display: none;
+    position: relative;
+    width: 100%;
+    background: #1a1a1a;
+    border-radius: 50px;
+    padding: 14px;
+    box-shadow:
+      0 0 0 2px #3a3a3a,
+      0 0 0 4px #1a1a1a,
+      0 30px 80px rgba(0,0,0,0.4),
+      0 60px 120px rgba(0,0,0,0.2);
+  }
+  .phone-shell.active { display: block; }
+  .phone-notch {
+    position: absolute;
+    top: 14px; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 34px;
+    background: #1a1a1a;
+    border-radius: 0 0 22px 22px;
+    z-index: 10;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .phone-notch-cam {
+    width: 10px; height: 10px;
+    background: #2a2a2a;
+    border-radius: 50%;
+    border: 2px solid #111;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.03), inset 0 0 4px rgba(0,0,0,0.8);
+  }
+  .phone-notch-pill {
+    width: 56px; height: 7px;
+    background: #111;
+    border-radius: 6px;
+  }
+  .phone-screen {
+    background: #f5f5f5;
+    border-radius: 38px;
+    overflow: hidden;
+    position: relative;
+    height: 680px;
+    display: flex; flex-direction: column;
+  }
+  .phone-status-bar {
+    background: #f5f5f5;
+    padding: 10px 22px 4px;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+    font-size: 11px; font-weight: 700;
+    color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .phone-status-icons { display: flex; align-items: center; gap: 4px; }
+  .phone-status-icons svg { width: 13px; height: 13px; }
+  .phone-app-bar {
+    background: #fff;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 8px 14px;
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+  .phone-app-bar-back {
+    color: #F72D74; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 3px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .phone-app-title {
+    font-size: 13px; font-weight: 700;
+    color: #1a1a1a; flex: 1; text-align: center;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  .phone-content-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    background: #f5f5f5;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .phone-content-scroll::-webkit-scrollbar { display: none; }
+  .phone-home-bar {
+    background: #f5f5f5;
+    padding: 6px 0 10px;
+    display: flex; justify-content: center;
+    flex-shrink: 0;
+  }
+  .phone-home-bar-pill {
+    width: 120px; height: 5px;
+    background: #1a1a1a;
+    border-radius: 3px;
+    opacity: 0.25;
+  }
+  .phone-side-btn {
+    position: absolute;
+    background: #2a2a2a;
+    border-radius: 3px;
+  }
+  .phone-vol-up  { left: -5px; top: 105px; width: 4px; height: 32px; }
+  .phone-vol-dn  { left: -5px; top: 150px; width: 4px; height: 32px; }
+  .phone-power   { right: -5px; top: 125px; width: 4px; height: 52px; }
+
+  /* Frame/phone toggle */
+  .frame-container.phone-mode .frame { display: none !important; }
+  .frame-container:not(.phone-mode) .phone-shell { display: none !important; }
+
+  /* ═══ Font-size stepper in format toolbar ═══ */
+  .ft-size-stepper {
+    display: flex; align-items: center; gap: 1px;
+  }
+  .ft-size-step-btn {
+    border: 0; background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.85); cursor: pointer;
+    width: 22px; height: 26px; border-radius: 5px;
+    display: grid; place-items: center;
+    font-size: 15px; font-weight: 700; line-height: 1;
+    transition: background 0.12s;
+    flex-shrink: 0;
+    font-family: inherit;
+  }
+  .ft-size-step-btn:hover { background: rgba(255,255,255,0.2); color: #fff; }
+  .ft-size-num {
+    border: 0; background: rgba(255,255,255,0.08);
+    color: #fff; font-family: inherit;
+    font-size: 11.5px; font-weight: 700;
+    width: 36px; padding: 4px 0;
+    border-radius: 5px; text-align: center;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+  .ft-size-num::-webkit-inner-spin-button,
+  .ft-size-num::-webkit-outer-spin-button { -webkit-appearance: none; }
+  .ft-size-num:focus { background: rgba(255,255,255,0.15); }
+
   /* ═══ Floating Format Toolbar ═══ */
   .format-toolbar {
     position: absolute;
@@ -528,6 +663,9 @@
     transition: max-width 0.45s cubic-bezier(0.65, 0, 0.35, 1);
     max-width: 1024px; width: 100%;
     position: relative;
+  }
+  .frame-container.phone-mode {
+    max-width: 390px;
   }
   .frame-label {
     position: absolute;
@@ -679,7 +817,7 @@
   <div class="device-switch" role="tablist">
     <button class="device-btn" data-device="mobile" data-width="390">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-      <span>Mobile</span>
+      <span>iPhone</span>
     </button>
     <button class="device-btn" data-device="tablet" data-width="768">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
@@ -806,19 +944,11 @@
 
 <!-- Floating format toolbar -->
 <div class="format-toolbar" id="formatToolbar">
-  <select class="ft-size" id="ftSize" title="Font size">
-    <option value="">Size</option>
-    <option value="10">10px</option>
-    <option value="11">11px</option>
-    <option value="12">12px</option>
-    <option value="13">13px</option>
-    <option value="14">14px</option>
-    <option value="16">16px</option>
-    <option value="18">18px</option>
-    <option value="20">20px</option>
-    <option value="24">24px</option>
-    <option value="28">28px</option>
-  </select>
+  <div class="ft-size-stepper" title="Font size (px)">
+    <button class="ft-size-step-btn" id="ftSizeDown" tabindex="-1">−</button>
+    <input type="number" class="ft-size-num" id="ftSizeNum" value="11" min="6" max="72" title="Font size in px">
+    <button class="ft-size-step-btn" id="ftSizeUp" tabindex="-1">+</button>
+  </div>
   <div class="ft-sep"></div>
   <button class="ft-btn" data-cmd="bold" title="Bold (Cmd/Ctrl+B)"><strong>B</strong></button>
   <button class="ft-btn" data-cmd="italic" title="Italic (Cmd/Ctrl+I)"><em>I</em></button>
@@ -855,6 +985,39 @@
     <div class="frame-label" id="frameLabel">Desktop · 1024px</div>
     <div class="frame">
       <div id="template"></div>
+    </div>
+    <!-- iPhone shell (shown in mobile mode) -->
+    <div class="phone-shell" id="phoneShell">
+      <div class="phone-side-btn phone-vol-up"></div>
+      <div class="phone-side-btn phone-vol-dn"></div>
+      <div class="phone-side-btn phone-power"></div>
+      <div class="phone-notch">
+        <div class="phone-notch-pill"></div>
+        <div class="phone-notch-cam"></div>
+      </div>
+      <div class="phone-screen">
+        <div class="phone-status-bar">
+          <span>9:41</span>
+          <div class="phone-status-icons">
+            <!-- Signal -->
+            <svg viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="14" width="3" height="6" rx="1"/><rect x="6" y="10" width="3" height="10" rx="1"/><rect x="11" y="6" width="3" height="14" rx="1"/><rect x="16" y="2" width="3" height="18" rx="1" opacity="0.3"/></svg>
+            <!-- WiFi -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/></svg>
+            <!-- Battery -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="7" width="18" height="10" rx="2"/><path d="M23 11v2" stroke-width="2" stroke-linecap="round"/><rect x="3" y="9" width="12" height="6" rx="1" fill="currentColor" stroke="none"/></svg>
+          </div>
+        </div>
+        <div class="phone-app-bar">
+          <div class="phone-app-bar-back">
+            <svg width="8" height="13" viewBox="0 0 8 13" fill="none"><path d="M7 1L1 6.5L7 12" stroke="#F72D74" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="phone-app-title">Campaign Details</div>
+        </div>
+        <div class="phone-content-scroll" id="phoneContent">
+          <!-- content mirrors #template, injected by JS -->
+        </div>
+        <div class="phone-home-bar"><div class="phone-home-bar-pill"></div></div>
+      </div>
     </div>
   </div>
 </main>
@@ -1621,6 +1784,15 @@ function updateFormatToolbar() {
     if (!isNaN(lh)) document.getElementById('ftLineHeight').value = Math.round((lh / fs) * 10);
     if (!isNaN(ls)) document.getElementById('ftLetterSpacing').value = ls;
   }
+  // Update font size stepper — read from actual selected text node (most accurate)
+  {
+    let anchorNode = range.startContainer;
+    if (anchorNode.nodeType === 3) anchorNode = anchorNode.parentElement;
+    const cs2 = window.getComputedStyle(anchorNode);
+    const fs2 = parseFloat(cs2.fontSize) || 13;
+    const fsRounded = Math.round(fs2);
+    if (fsRounded >= 6 && fsRounded <= 144) document.getElementById('ftSizeNum').value = fsRounded;
+  }
 }
 
 function hideFormatToolbar() {
@@ -1651,28 +1823,74 @@ formatToolbarEl.querySelectorAll('[data-cmd]').forEach(btn => {
   });
 });
 
-// Font size
-document.getElementById('ftSize').addEventListener('change', (e) => {
-  const px = e.target.value;
-  if (!px) return;
-  restoreSelection();
+// Font size stepper — savedRange is the ground truth, restored before every apply
+function applyFontSize(px) {
+  px = parseInt(px);
+  if (!px || px < 6 || px > 200) return;
+  if (!savedRange) { showToast('Select text first'); return; }
   const sel = window.getSelection();
-  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-    showToast('Please select text first');
-    e.target.value = '';
-    return;
-  }
-  // Wrap selection in span with font-size
-  document.execCommand('styleWithCSS', false, true);
-  document.execCommand('fontSize', false, '7'); // temporarily wrap
-  const fontElements = templateEl.querySelectorAll('font[size="7"]');
-  fontElements.forEach(f => {
-    const span = document.createElement('span');
-    span.style.fontSize = px + 'px';
-    while (f.firstChild) span.appendChild(f.firstChild);
-    f.parentNode.replaceChild(span, f);
+  sel.removeAllRanges();
+  try { sel.addRange(savedRange); } catch(e) { showToast('Select text first'); return; }
+  if (sel.isCollapsed) { showToast('Select text first'); return; }
+  const stamp = 'kfs' + Date.now();
+  document.execCommand('styleWithCSS', false, false);
+  document.execCommand('fontSize', false, '7');
+  templateEl.querySelectorAll('font[size="7"]').forEach(f => {
+    const sp = document.createElement('span');
+    sp.style.fontSize = px + 'px';
+    sp.className = stamp;
+    while (f.firstChild) sp.appendChild(f.firstChild);
+    f.parentNode.replaceChild(sp, f);
   });
-  e.target.value = '';
+  templateEl.querySelectorAll('span.' + stamp).forEach(outer => {
+    outer.querySelectorAll('span[style*="font-size"]').forEach(inner => {
+      inner.style.removeProperty('font-size');
+      if (!inner.getAttribute('style')) inner.removeAttribute('style');
+    });
+  });
+  const newSel = window.getSelection();
+  if (newSel.rangeCount > 0) savedRange = newSel.getRangeAt(0).cloneRange();
+  document.getElementById('ftSizeNum').value = px;
+  if (frameEl.classList.contains('phone-mode')) syncPhoneContent();
+}
+// − button: mousedown prevents selection blur, click decrements
+document.getElementById('ftSizeDown').addEventListener('mousedown', e => e.preventDefault());
+document.getElementById('ftSizeDown').addEventListener('click', () => {
+  const n = parseInt(document.getElementById('ftSizeNum').value) || 13;
+  const next = Math.max(6, n - 1);
+  document.getElementById('ftSizeNum').value = next;
+  applyFontSize(next);
+});
+// + button
+document.getElementById('ftSizeUp').addEventListener('mousedown', e => e.preventDefault());
+document.getElementById('ftSizeUp').addEventListener('click', () => {
+  const n = parseInt(document.getElementById('ftSizeNum').value) || 13;
+  const next = n + 1;
+  document.getElementById('ftSizeNum').value = next;
+  applyFontSize(next);
+});
+// Number input: Enter or arrow keys apply
+document.getElementById('ftSizeNum').addEventListener('click', e => {
+  // Allow click-to-focus on number input without closing toolbar
+  e.stopPropagation();
+});
+document.getElementById('ftSizeNum').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    applyFontSize(parseInt(e.target.value));
+  }
+  if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const next = (parseInt(e.target.value) || 13) + 1;
+    e.target.value = next;
+    applyFontSize(next);
+  }
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    const next = Math.max(6, (parseInt(e.target.value) || 13) - 1);
+    e.target.value = next;
+    applyFontSize(next);
+  }
 });
 
 // Color picker in toolbar
@@ -1700,9 +1918,10 @@ document.getElementById('ftLetterSpacing').addEventListener('input', (e) => {
   if (block) block.style.letterSpacing = val + 'px';
 });
 
-// Prevent toolbar from killing selection
+// Prevent toolbar from killing selection — prevent default on ALL mousedown in toolbar
+// The number input uses stopPropagation+mousedown to allow focusing without losing selection
 formatToolbarEl.addEventListener('mousedown', (e) => {
-  if (!['INPUT', 'SELECT'].includes(e.target.tagName)) e.preventDefault();
+  e.preventDefault(); // keeps contenteditable selection alive for ALL toolbar clicks
 });
 
 // Hide toolbar on scroll
@@ -1743,13 +1962,35 @@ function closeSidebar() {
 // ═══════════════════════════════════════════════════════════
 // DEVICE SWITCH
 // ═══════════════════════════════════════════════════════════
+const phoneShellEl = document.getElementById('phoneShell');
+const phoneContentEl = document.getElementById('phoneContent');
+
+function syncPhoneContent() {
+  if (!frameEl.classList.contains('phone-mode')) return;
+  phoneContentEl.innerHTML = templateEl.innerHTML;
+  // Remove contenteditable & row-delete buttons from phone mirror
+  phoneContentEl.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  phoneContentEl.querySelectorAll('.row-delete').forEach(el => el.remove());
+}
+
 document.querySelectorAll('.device-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    frameEl.style.maxWidth = btn.dataset.width + 'px';
-    const labels = { mobile: 'Mobile · 390px', tablet: 'iPad · 768px', desktop: 'Desktop · 1024px' };
-    frameLabelEl.textContent = labels[btn.dataset.device];
+    const device = btn.dataset.device;
+    const width  = btn.dataset.width;
+    frameEl.style.maxWidth = width + 'px';
+    if (device === 'mobile') {
+      frameEl.classList.add('phone-mode');
+      phoneShellEl.classList.add('active');
+      frameLabelEl.textContent = 'iPhone · 390px';
+      syncPhoneContent();
+    } else {
+      frameEl.classList.remove('phone-mode');
+      phoneShellEl.classList.remove('active');
+      const labels = { tablet: 'iPad · 768px', desktop: 'Desktop · 1024px' };
+      frameLabelEl.textContent = labels[device];
+    }
   });
 });
 
@@ -2161,6 +2402,12 @@ renderEmojiPicker();
 document.getElementById('ftColorSwatch').style.background = currentThemeHex;
 // Apply Konvy pink as default theme on load (silent)
 applyThemeByHex(currentThemeHex, null, true);
+
+// Keep phone preview in sync with template edits
+const templateObserver = new MutationObserver(() => {
+  if (frameEl.classList.contains('phone-mode')) syncPhoneContent();
+});
+templateObserver.observe(templateEl, { childList: true, subtree: true, characterData: true, attributes: true });
 </script>
 </body>
 </html>
