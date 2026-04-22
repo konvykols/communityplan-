@@ -13,13 +13,20 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #f4f0ea;
+    --bg: #ffffff;
+    --bg-soft: #fafbfc;
     --bg-card: #ffffff;
-    --ink: #18160f;
-    --ink-soft: #6b655a;
-    --ink-faint: #9a9487;
-    --line: rgba(24, 22, 15, 0.08);
-    --accent: #ff6b1a;
+    --ink: #1a1625;
+    --ink-soft: #5f5b6b;
+    --ink-faint: #9c98a6;
+    --line: rgba(26, 22, 37, 0.08);
+    --accent: #F72D74;
+    --accent-soft: #fde4ee;
+    --konvy-pink: #F72D74;
+    --konvy-purple: #A557F4;
+    --konvy-blue: #55E5FC;
+    --konvy-green: #29D494;
+    --konvy-yellow: #FFE01C;
     --sidebar-w: 300px;
   }
 
@@ -33,17 +40,19 @@
   body::before {
     content: ''; position: fixed; inset: 0;
     background-image:
-      radial-gradient(circle at 20% 10%, rgba(255, 107, 26, 0.04), transparent 40%),
-      radial-gradient(circle at 80% 80%, rgba(24, 22, 15, 0.03), transparent 50%);
+      radial-gradient(circle at 15% 5%, rgba(247, 45, 116, 0.06), transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(165, 87, 244, 0.05), transparent 40%),
+      radial-gradient(circle at 80% 85%, rgba(85, 229, 252, 0.04), transparent 45%),
+      radial-gradient(circle at 20% 95%, rgba(41, 212, 148, 0.04), transparent 40%);
     pointer-events: none; z-index: 0;
   }
 
   /* ═══ Toolbar ═══ */
   .toolbar {
     position: fixed; top: 0; left: 0; right: 0; height: 64px;
-    background: rgba(244, 240, 234, 0.85);
-    backdrop-filter: blur(24px) saturate(1.4);
-    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
     border-bottom: 1px solid var(--line);
     display: flex; align-items: center;
     padding: 0 24px; z-index: 100; gap: 14px;
@@ -51,11 +60,13 @@
   .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
   .brand-mark {
     width: 32px; height: 32px;
-    background: var(--ink); border-radius: 9px;
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    border-radius: 9px;
     display: grid; place-items: center;
     font-family: 'Instrument Serif', serif;
     font-style: italic; color: #fff;
     font-size: 18px; letter-spacing: -0.02em;
+    box-shadow: 0 2px 8px rgba(247, 45, 116, 0.25);
   }
   .brand-text { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
   .brand-title {
@@ -69,7 +80,7 @@
   .toolbar-spacer { flex: 1; }
 
   .device-switch {
-    display: flex; background: rgba(24, 22, 15, 0.05);
+    display: flex; background: rgba(26, 22, 37, 0.04);
     padding: 4px; border-radius: 11px; gap: 2px;
   }
   .device-btn {
@@ -82,8 +93,8 @@
   .device-btn:hover { color: var(--ink); }
   .device-btn svg { width: 13px; height: 13px; }
   .device-btn.active {
-    background: var(--ink); color: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.08);
+    background: #fff; color: var(--accent);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 3px 8px rgba(247, 45, 116, 0.15);
   }
 
   .action-btn {
@@ -96,14 +107,15 @@
   }
   .action-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
   .action-btn.ghost { background: transparent; color: var(--ink-soft); }
-  .action-btn.ghost:hover { color: var(--ink); background: rgba(24, 22, 15, 0.05); }
+  .action-btn.ghost:hover { color: var(--ink); background: rgba(26, 22, 37, 0.05); }
   .action-btn.accent {
-    background: var(--accent); color: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 4px 14px rgba(255, 107, 26, 0.3);
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 4px 14px rgba(247, 45, 116, 0.35);
   }
   .action-btn.accent:hover {
-    background: #e85d0f; transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 8px 22px rgba(255, 107, 26, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 22px rgba(247, 45, 116, 0.45);
   }
 
   .dropdown { position: relative; }
@@ -127,7 +139,8 @@
     text-align: left; display: flex; align-items: center; gap: 11px;
     font-family: inherit; transition: background 0.12s ease;
   }
-  .dropdown-menu button:hover { background: rgba(24, 22, 15, 0.05); }
+  .dropdown-menu button:hover { background: var(--accent-soft); color: var(--ink); }
+  .dropdown-menu button:hover svg { color: var(--accent); }
   .dropdown-menu button svg { width: 14px; height: 14px; color: var(--ink-soft); flex-shrink: 0; }
   .dropdown-menu .menu-label {
     font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -142,9 +155,9 @@
     position: fixed;
     top: 64px; left: 0; bottom: 0;
     width: var(--sidebar-w);
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(20px) saturate(1.3);
-    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
     border-right: 1px solid var(--line);
     overflow-y: auto;
     z-index: 50;
@@ -152,7 +165,8 @@
   }
   .sidebar::-webkit-scrollbar { width: 6px; }
   .sidebar::-webkit-scrollbar-track { background: transparent; }
-  .sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(247, 45, 116, 0.15); border-radius: 3px; }
+  .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(247, 45, 116, 0.3); }
 
   .sb-section { margin-bottom: 20px; }
   .sb-label {
@@ -166,9 +180,10 @@
   }
   .sb-label::before {
     content: '';
-    width: 4px; height: 4px;
-    background: var(--accent);
+    width: 6px; height: 6px;
+    background: linear-gradient(135deg, #F72D74, #A557F4);
     border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(247, 45, 116, 0.12);
   }
   .sb-hint {
     font-size: 10.5px; color: var(--ink-faint);
@@ -233,23 +248,28 @@
     color: var(--ink);
     text-transform: uppercase;
   }
-  .hex-input:focus { border-color: var(--ink); }
+  .hex-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(247, 45, 116, 0.12); }
   .hex-apply {
-    border: 0; background: var(--ink); color: #fff;
-    padding: 7px 10px; font-size: 11px; font-weight: 600;
+    border: 0; background: linear-gradient(135deg, #F72D74, #A557F4);
+    color: #fff;
+    padding: 7px 12px; font-size: 11px; font-weight: 700;
     border-radius: 8px; cursor: pointer;
     font-family: inherit;
     transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(247, 45, 116, 0.25);
   }
-  .hex-apply:hover { background: #2a2820; }
+  .hex-apply:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(247, 45, 116, 0.4);
+  }
   .hex-copy {
-    border: 0; background: rgba(24,22,15,0.05);
+    border: 0; background: rgba(26,22,37,0.05);
     color: var(--ink-soft); padding: 7px 9px;
     font-size: 11px; border-radius: 8px; cursor: pointer;
     font-family: inherit;
     transition: all 0.15s ease;
   }
-  .hex-copy:hover { background: rgba(24,22,15,0.1); color: var(--ink); }
+  .hex-copy:hover { background: var(--accent-soft); color: var(--accent); }
   .hex-copy svg { width: 11px; height: 11px; display: block; }
 
   /* Text color swatches */
@@ -267,7 +287,7 @@
     padding: 0;
     position: relative;
   }
-  .color-swatch:hover { transform: scale(1.12); border-color: var(--ink); }
+  .color-swatch:hover { transform: scale(1.12); border-color: var(--accent); }
   .color-swatch.clear {
     background: #fff;
     display: grid; place-items: center;
@@ -277,7 +297,7 @@
   /* Emoji */
   .emoji-tabs {
     display: flex; gap: 2px; margin-bottom: 8px;
-    background: rgba(24, 22, 15, 0.04);
+    background: rgba(26, 22, 37, 0.04);
     padding: 3px; border-radius: 9px;
     overflow-x: auto;
     scrollbar-width: none;
@@ -295,7 +315,11 @@
     transition: all 0.15s ease;
   }
   .emoji-tab:hover { color: var(--ink); }
-  .emoji-tab.active { background: var(--ink); color: #fff; }
+  .emoji-tab.active {
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(247, 45, 116, 0.3);
+  }
   .emoji-grid {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -309,11 +333,11 @@
     display: grid; place-items: center;
     line-height: 1;
   }
-  .emoji-btn:hover { background: rgba(24, 22, 15, 0.07); }
+  .emoji-btn:hover { background: var(--accent-soft); }
 
   /* Structure / Add buttons */
   .add-btn {
-    width: 100%; border: 1.5px dashed rgba(24, 22, 15, 0.15);
+    width: 100%; border: 1.5px dashed rgba(247, 45, 116, 0.3);
     background: transparent;
     padding: 10px; border-radius: 10px;
     font-family: inherit; font-size: 12px; font-weight: 600;
@@ -322,8 +346,8 @@
     transition: all 0.18s ease;
   }
   .add-btn:hover {
-    border-color: var(--ink); color: var(--ink);
-    background: rgba(24, 22, 15, 0.03);
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft);
   }
   .add-btn + .add-btn { margin-top: 6px; }
 
@@ -334,10 +358,11 @@
     bottom: 20px; right: 20px;
     width: 48px; height: 48px;
     border-radius: 50%; border: 0;
-    background: var(--ink); color: #fff;
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    color: #fff;
     cursor: pointer;
     align-items: center; justify-content: center;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(247, 45, 116, 0.4);
     z-index: 60;
   }
   .sb-toggle svg { width: 20px; height: 20px; }
@@ -351,14 +376,14 @@
   /* ═══ Floating Format Toolbar ═══ */
   .format-toolbar {
     position: absolute;
-    background: #18160f;
+    background: #1a1625;
     border-radius: 12px;
     padding: 5px;
     display: none;
     gap: 2px;
     align-items: center;
     z-index: 150;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2), 0 20px 50px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2), 0 20px 50px rgba(26, 22, 37, 0.2);
     animation: ftFadeIn 0.15s ease;
     flex-wrap: wrap;
     max-width: 340px;
@@ -377,7 +402,7 @@
     transition: all 0.12s ease;
   }
   .ft-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
-  .ft-btn.active { color: var(--accent); background: rgba(255,107,26,0.15); }
+  .ft-btn.active { color: var(--konvy-pink); background: rgba(247, 45, 116, 0.15); }
   .ft-btn svg { width: 14px; height: 14px; }
   .ft-sep {
     width: 1px; height: 18px;
@@ -392,7 +417,7 @@
     cursor: pointer;
     outline: none;
   }
-  .ft-size option { background: #18160f; }
+  .ft-size option { background: #1a1625; }
   .ft-range-wrap {
     display: flex; align-items: center; gap: 5px;
     padding: 0 4px;
@@ -409,13 +434,13 @@
   .ft-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 12px; height: 12px;
-    background: var(--accent);
+    background: var(--konvy-pink);
     border-radius: 50%; border: 0;
     cursor: pointer;
   }
   .ft-range::-moz-range-thumb {
     width: 12px; height: 12px;
-    background: var(--accent); border: 0;
+    background: var(--konvy-pink); border: 0;
     border-radius: 50%; cursor: pointer;
   }
   .ft-color-wrap {
@@ -430,7 +455,7 @@
   .ft-color-swatch {
     width: 18px; height: 18px;
     border-radius: 5px;
-    background: var(--accent);
+    background: var(--konvy-pink);
     border: 2px solid #fff;
     pointer-events: none;
   }
@@ -467,8 +492,9 @@
   }
   .frame-label::before {
     content: ''; width: 6px; height: 6px;
-    background: var(--accent); border-radius: 50%;
-    box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.18);
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(247, 45, 116, 0.18);
   }
   .frame {
     background: var(--bg-card);
@@ -477,8 +503,8 @@
     box-shadow:
       0 1px 0 rgba(0,0,0,0.04),
       0 2px 4px rgba(0,0,0,0.04),
-      0 16px 40px rgba(24, 22, 15, 0.06),
-      0 40px 80px rgba(24, 22, 15, 0.04);
+      0 16px 40px rgba(26, 22, 37, 0.06),
+      0 40px 80px rgba(26, 22, 37, 0.04);
     border: 1px solid rgba(255,255,255,0.8);
   }
 
@@ -489,12 +515,12 @@
     position: relative;
   }
   #template [contenteditable="true"]:hover {
-    background: rgba(255, 107, 26, 0.05);
-    box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.05);
+    background: rgba(247, 45, 116, 0.05);
+    box-shadow: 0 0 0 4px rgba(247, 45, 116, 0.05);
   }
   #template [contenteditable="true"]:focus {
-    background: rgba(255, 107, 26, 0.09);
-    box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.18);
+    background: rgba(247, 45, 116, 0.09);
+    box-shadow: 0 0 0 4px rgba(247, 45, 116, 0.18);
   }
   #template [data-role="guideline"] { position: relative; }
   .row-delete {
@@ -671,10 +697,10 @@
     <div class="sb-label">ธีมสีกรอบ</div>
     <div class="theme-grid" id="themeGrid"></div>
     <div class="hex-row">
-      <div class="hex-swatch" id="themeHexSwatch" style="background:#ff6b1a;">
-        <input type="color" id="themeColorInput" value="#ff6b1a">
+      <div class="hex-swatch" id="themeHexSwatch" style="background:#F72D74;">
+        <input type="color" id="themeColorInput" value="#F72D74">
       </div>
-      <input type="text" class="hex-input" id="themeHexInput" value="#FF6B1A" maxlength="7" placeholder="#RRGGBB">
+      <input type="text" class="hex-input" id="themeHexInput" value="#F72D74" maxlength="7" placeholder="#RRGGBB">
       <button class="hex-apply" onclick="applyCustomTheme()">ใช้</button>
     </div>
     <div class="sb-hint">เลือก preset หรือกรอกโค้ดสี HEX เอง — สีกรอบทั้งหมดจะปรับตามอัตโนมัติ</div>
@@ -685,10 +711,10 @@
     <div class="sb-label">สีตัวอักษร</div>
     <div class="color-grid" id="colorGrid"></div>
     <div class="hex-row">
-      <div class="hex-swatch" id="textHexSwatch" style="background:#18160f;">
-        <input type="color" id="textColorInput" value="#18160f">
+      <div class="hex-swatch" id="textHexSwatch" style="background:#F72D74;">
+        <input type="color" id="textColorInput" value="#F72D74">
       </div>
-      <input type="text" class="hex-input" id="textHexInput" value="#18160F" maxlength="7" placeholder="#RRGGBB">
+      <input type="text" class="hex-input" id="textHexInput" value="#F72D74" maxlength="7" placeholder="#RRGGBB">
       <button class="hex-copy" id="textHexCopy" title="คัดลอกโค้ดสี">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
@@ -743,7 +769,7 @@
   <div class="ft-sep"></div>
   <div class="ft-color-wrap" title="สีตัวอักษร">
     <div class="ft-color-swatch" id="ftColorSwatch"></div>
-    <input type="color" id="ftColor" value="#ff6b1a">
+    <input type="color" id="ftColor" value="#F72D74">
   </div>
   <div class="ft-sep"></div>
   <button class="ft-btn" data-cmd="justifyLeft" title="ชิดซ้าย">
@@ -863,16 +889,11 @@ function deriveThemeFromHex(accentHex) {
 // THEMES (10 presets)
 // ═══════════════════════════════════════════════════════════
 const THEME_PRESETS = [
-  { key: 'orange',    label: 'Summer',   hex: '#ef6c00', preview: 'linear-gradient(135deg,#ff8a3d,#ef6c00)' },
-  { key: 'green',     label: 'Sport',    hex: '#2e7d32', preview: 'linear-gradient(135deg,#66bb6a,#2e7d32)' },
-  { key: 'blue',      label: 'Office',   hex: '#1565c0', preview: 'linear-gradient(135deg,#64b5f6,#1565c0)' },
-  { key: 'pink',      label: 'Beauty',   hex: '#c2185b', preview: 'linear-gradient(135deg,#f48fb1,#c2185b)' },
-  { key: 'purple',    label: 'Lux',      hex: '#6a1b9a', preview: 'linear-gradient(135deg,#ba68c8,#6a1b9a)' },
-  { key: 'teal',      label: 'Mint',     hex: '#00796b', preview: 'linear-gradient(135deg,#4db6ac,#00796b)' },
-  { key: 'coral',     label: 'Coral',    hex: '#e53935', preview: 'linear-gradient(135deg,#ef5350,#e53935)' },
-  { key: 'gold',      label: 'Gold',     hex: '#d4a017', preview: 'linear-gradient(135deg,#f9ca24,#d4a017)' },
-  { key: 'navy',      label: 'Navy',     hex: '#0d47a1', preview: 'linear-gradient(135deg,#3949ab,#0d47a1)' },
-  { key: 'brown',     label: 'Cocoa',    hex: '#5d4037', preview: 'linear-gradient(135deg,#8d6e63,#5d4037)' }
+  { key: 'pink',    label: 'Pink',   hex: '#F72D74', preview: 'linear-gradient(135deg,#ff6fa3,#f72d74)' },
+  { key: 'purple',  label: 'Purple', hex: '#A557F4', preview: 'linear-gradient(135deg,#c994ff,#a557f4)' },
+  { key: 'blue',    label: 'Blue',   hex: '#55E5FC', preview: 'linear-gradient(135deg,#a0f0ff,#55e5fc)' },
+  { key: 'green',   label: 'Green',  hex: '#29D494', preview: 'linear-gradient(135deg,#6ee7b8,#29d494)' },
+  { key: 'yellow',  label: 'Yellow', hex: '#FFE01C', preview: 'linear-gradient(135deg,#fff176,#ffe01c)' }
 ];
 
 const ROLE_APPLIER = {
@@ -902,10 +923,8 @@ const ROLE_APPLIER = {
 // TEXT COLORS
 // ═══════════════════════════════════════════════════════════
 const TEXT_COLORS = [
-  '#18160f', '#e53935', '#ef6c00', '#f9a825',
-  '#43a047', '#00897b', '#1e88e5', '#5e35b1',
-  '#d81b60', '#c2185b', '#8d6e63', '#546e7a',
-  '#2e7d32', '#0d47a1', '#6a1b9a', '#ffffff'
+  '#F72D74', '#A557F4', '#55E5FC', '#29D494', '#FFE01C', '#1a1625', '#ffffff', '#e53935',
+  '#ef6c00', '#f9a825', '#43a047', '#00897b', '#1e88e5', '#5e35b1', '#d81b60', '#546e7a'
 ];
 
 // ═══════════════════════════════════════════════════════════
@@ -924,68 +943,62 @@ const EMOJIS = {
 // ═══════════════════════════════════════════════════════════
 // TEMPLATE HTML
 // ═══════════════════════════════════════════════════════════
-const INITIAL_HTML = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#ef6c00; text-align:center; line-height:1.5; font-weight:bold;">
-  ☀️แดดแรงแค่ไหนก็ยังเป๊ะ! <br>แค่มี #ไอเทมหน้าร้อน☀️
+const INITIAL_HTML = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#F72D74; text-align:center; line-height:1.5; font-weight:bold;">
+  ✨ หัวข้อแคมเปญ ✨<br>#แฮชแท็กแคมเปญ
 </p>
 
-<div data-role="frame1" style="margin-bottom:12px; background-color:#ffffff; padding:12px; border-radius:12px; border:1px solid #ffe0b2; box-shadow:0 2px 8px rgba(239,108,0,0.1);">
+<div data-role="frame1" style="margin-bottom:12px; background-color:#ffffff; padding:12px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(247,45,116,0.1);">
 
-  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed #ffcc80;">
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed #fab6d0;">
     <span style="font-size:15px; margin-right:8px;">💡</span>
-    <strong data-role="frame1-heading" contenteditable="true" style="color:#e65100; font-size:13px;">แนวทางการสร้างสรรค์คอนเทนต์</strong>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#c2185b; font-size:13px;">แนวทางการสร้างสรรค์คอนเทนต์</strong>
   </div>
 
   <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
-    🛡️ <strong>ทริคดูแลผิวสู้แดดเมืองไทย!</strong><br>
-    • แชร์ไอเทมกันแดด และสกินแคร์กู้ผิวที่ช่วยให้คุณสู้แดดได้อย่างมั่นใจ ไม่กลัวผิวเสียหรือหมองคล้ำ
+    ✨ <strong>หัวข้อที่ 1</strong><br>
+    • คำอธิบายหัวข้อ คลิกเพื่อแก้ไข
   </p>
 
   <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
-    💄 <strong>เมคอัพติดทนนาน</strong><br>
-    • รวมไอเทมคุมมันกันน้ำที่ช่วยล็อคเมคอัพให้สวยทนทาน ไม่ไหลเยิ้ม เป็นคราบ แม้ต้องเผชิญอากาศร้อนและเหงื่อ
+    ✨ <strong>หัวข้อที่ 2</strong><br>
+    • คำอธิบายหัวข้อ คลิกเพื่อแก้ไข
   </p>
 
   <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
-    🧊 <strong>ไอเทมเพิ่มความสดชื่น</strong><br>
-    • ป้ายยาบอดี้แคร์สูตรเย็นและน้ำหอมกลิ่นเฟรชที่ช่วยดับร้อนทันที เพิ่มความสดชื่นและพลังงานบวกให้ร่างกาย
-  </p>
-
-  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
-    🍹 <strong>ดูแลสุขภาพจากภายใน</strong><br>
-    • แชร์ไอเทมดูแลสุขภาพที่ช่วยบำรุงผิวให้โกลว์ใสจากภายในสู่ภายนอก พร้อมอวดผิวสวยต้อนรับซัมเมอร์อย่างมั่นใจ
+    ✨ <strong>หัวข้อที่ 3</strong><br>
+    • คำอธิบายหัวข้อ คลิกเพื่อแก้ไข
   </p>
 </div>
 
-<div data-role="frame2" style="margin-bottom:12px; background-color:#fff8e1; padding:12px; border-radius:12px; border:1px solid #ffecb3; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+<div data-role="frame2" style="margin-bottom:12px; background-color:#fff5f8; padding:12px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
 
   <div style="display:flex; align-items:center; margin-bottom:6px;">
     <span style="font-size:15px; margin-right:8px;">✅</span>
-    <strong data-role="frame2-heading" contenteditable="true" style="color:#f57c00; font-size:13px;">กติกาและเงื่อนไขการร่วมสนุก</strong>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#c2185b; font-size:13px;">กติกาและเงื่อนไขการร่วมสนุก</strong>
   </div>
 
   <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
-    1. <strong>โพสต์รูปภาพ:</strong> รูปภาพอย่างน้อย 1 รูป พร้อมคำบรรยาย 100 ตัวอักษรขึ้นไป<br>
-    2. <strong>โพสต์วิดีโอ:</strong> ความยาววิดีโออย่างน้อย 15 วินาที<br>
-    3. เนื้อหาต้องเป็น<strong>ผลงานออริจินัล</strong> สร้างสรรค์ขึ้นเอง และ<strong>เกี่ยวข้องกับหัวข้อกิจกรรม</strong><br>
-    4. หากติดหลายแฮชแท็กจะยึดแฮชแท็กแรกเป็นหลัก <strong>(1 คอนเทนต์ รับรางวัลได้เพียง 1 กิจกรรมเท่านั้น)</strong>
+    1. <strong>โพสต์รูปภาพ:</strong> รายละเอียดกติกา<br>
+    2. <strong>โพสต์วิดีโอ:</strong> รายละเอียดกติกา<br>
+    3. <strong>เงื่อนไขเนื้อหา:</strong> รายละเอียดกติกา<br>
+    4. <strong>การติดแฮชแท็ก:</strong> รายละเอียดกติกา
   </p>
 
-  <div data-role="hashtag" contenteditable="true" style="margin-top:10px; padding:8px 10px; background-color:#ffffff; border-left:4px solid #ff9800; border-radius:10px; font-size:12px; color:#5d4037;">
-    💡 ติดแฮชแท็ก <strong data-role="hashtag-strong" style="color:#e65100;">#ไอเทมหน้าร้อน</strong>
+  <div data-role="hashtag" contenteditable="true" style="margin-top:10px; padding:8px 10px; background-color:#ffffff; border-left:4px solid #F72D74; border-radius:10px; font-size:12px; color:#5d4037;">
+    💡 ติดแฮชแท็ก <strong data-role="hashtag-strong" style="color:#c2185b;">#แฮชแท็กแคมเปญ</strong>
   </div>
 
   <div style="display:flex; align-items:center; margin:12px 0 6px;">
     <span style="font-size:15px; margin-right:8px;">🎁</span>
-    <strong data-role="reward-heading" contenteditable="true" style="color:#ef6c00; font-size:13px;">รางวัลกิจกรรม</strong>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#F72D74; font-size:13px;">รางวัลกิจกรรม</strong>
   </div>
 
   <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
     <strong>1. รางวัลการเข้าร่วม</strong><br>
-     • แค่โพสต์ก็ได้แล้ว! รับเลย <strong>200 Konvy Points</strong> สำหรับคอนเทนต์ที่ผ่านการตรวจสอบเท่านั้น* (รับสิทธิ์ 1 ครั้ง ต่อผู้ใช้งาน)<br><br>
+    • รายละเอียดรางวัล<br><br>
 
-    <strong>2. TOP 20 ดาวเด่นสายคอนเทนต์</strong><br>
-    • รับ <strong>Konvy Credit 500 บาท</strong><br>
-    Konvy Credit สามารถใช้แทนเงินสดได้* (รับสิทธิ์ 1 ครั้ง ต่อผู้ใช้งาน)
+    <strong>2. รางวัลพิเศษ</strong><br>
+    • รายละเอียดรางวัล
   </p>
 
   <p data-role="footnote" contenteditable="true" style="font-size:10px; line-height:1.5; margin:8px 0 0; color:#8d6e63;">
@@ -1018,7 +1031,7 @@ const sbBackdropEl = document.getElementById('sbBackdrop');
 const formatToolbarEl = document.getElementById('formatToolbar');
 const importInputEl = document.getElementById('importInput');
 
-let currentThemeHex = '#ef6c00';
+let currentThemeHex = '#F72D74';
 let savedRange = null;
 
 // ═══════════════════════════════════════════════════════════
@@ -1119,7 +1132,7 @@ function renderThemeChips() {
   });
 }
 
-function applyThemeByHex(hex, label) {
+function applyThemeByHex(hex, label, silent) {
   const norm = normalizeHex(hex);
   if (!norm) { showToast('โค้ดสีไม่ถูกต้อง', { error: true }); return; }
   currentThemeHex = norm;
@@ -1140,13 +1153,13 @@ function applyThemeByHex(hex, label) {
     const chips = document.querySelectorAll('.theme-chip');
     if (chips[idx]) chips[idx].classList.add('active');
   }
-  showToast(label ? `ธีม ${label}` : `เปลี่ยนธีมเป็น ${norm}`);
+  if (!silent) showToast(label ? `ธีม ${label}` : `เปลี่ยนธีมเป็น ${norm}`);
 }
 
 function applyCustomTheme() {
   const input = document.getElementById('themeHexInput').value;
   const norm = normalizeHex(input);
-  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง (ตย. #FF6B1A)', { error: true }); return; }
+  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง (ตย. #F72D74)', { error: true }); return; }
   applyThemeByHex(norm);
 }
 
@@ -1786,12 +1799,13 @@ async function sendToTeam() {
 // ═══════════════════════════════════════════════════════════
 function resetTemplate() {
   if (confirm('รีเซ็ต template กลับค่าเริ่มต้น?\nข้อมูลที่แก้ไขจะหายทั้งหมด')) {
-    currentThemeHex = '#ef6c00';
+    currentThemeHex = '#F72D74';
     mountTemplate();
     renderThemeChips();
-    document.getElementById('themeHexInput').value = '#EF6C00';
-    document.getElementById('themeColorInput').value = '#ef6c00';
-    document.getElementById('themeHexSwatch').style.background = '#ef6c00';
+    document.getElementById('themeHexInput').value = '#F72D74';
+    document.getElementById('themeColorInput').value = '#F72D74';
+    document.getElementById('themeHexSwatch').style.background = '#F72D74';
+    applyThemeByHex('#F72D74');
     showToast('รีเซ็ตเรียบร้อย');
   }
 }
@@ -1826,6 +1840,8 @@ renderThemeChips();
 renderColorSwatches();
 renderEmojiPicker();
 document.getElementById('ftColorSwatch').style.background = currentThemeHex;
+// Apply Konvy pink as default theme on load (silent)
+applyThemeByHex(currentThemeHex, null, true);
 </script>
 </body>
 </html>
