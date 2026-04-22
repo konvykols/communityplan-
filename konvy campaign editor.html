@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campaign Template Editor · Konvy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Manrope:wght@400;500;600;700&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f4f0ea;
+    --bg-card: #ffffff;
+    --ink: #18160f;
+    --ink-soft: #6b655a;
+    --ink-faint: #9a9487;
+    --line: rgba(24, 22, 15, 0.08);
+    --accent: #ff6b1a;
+    --sidebar-w: 300px;
+  }
+
+  html, body {
+    font-family: 'Manrope', 'IBM Plex Sans Thai', system-ui, sans-serif;
+    background: var(--bg); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255, 107, 26, 0.04), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(24, 22, 15, 0.03), transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ═══ Toolbar ═══ */
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 64px;
+    background: rgba(244, 240, 234, 0.85);
+    backdrop-filter: blur(24px) saturate(1.4);
+    -webkit-backdrop-filter: blur(24px) saturate(1.4);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center;
+    padding: 0 24px; z-index: 100; gap: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-mark {
+    width: 32px; height: 32px;
+    background: var(--ink); border-radius: 9px;
+    display: grid; place-items: center;
+    font-family: 'Instrument Serif', serif;
+    font-style: italic; color: #fff;
+    font-size: 18px; letter-spacing: -0.02em;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
+  .brand-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 21px; font-style: italic; letter-spacing: -0.01em;
+  }
+  .brand-sub {
+    font-size: 10px; color: var(--ink-faint);
+    letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600;
+  }
+  .toolbar-spacer { flex: 1; }
+
+  .device-switch {
+    display: flex; background: rgba(24, 22, 15, 0.05);
+    padding: 4px; border-radius: 11px; gap: 2px;
+  }
+  .device-btn {
+    border: 0; background: transparent; font-family: inherit;
+    font-size: 12px; font-weight: 600; color: var(--ink-soft);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.18s ease;
+  }
+  .device-btn:hover { color: var(--ink); }
+  .device-btn svg { width: 13px; height: 13px; }
+  .device-btn.active {
+    background: var(--ink); color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 3px 8px rgba(0,0,0,0.08);
+  }
+
+  .action-btn {
+    border: 0; font-family: inherit;
+    font-size: 12px; font-weight: 600;
+    padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.18s ease;
+    letter-spacing: 0.01em; white-space: nowrap;
+  }
+  .action-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .action-btn.ghost { background: transparent; color: var(--ink-soft); }
+  .action-btn.ghost:hover { color: var(--ink); background: rgba(24, 22, 15, 0.05); }
+  .action-btn.accent {
+    background: var(--accent); color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15), 0 4px 14px rgba(255, 107, 26, 0.3);
+  }
+  .action-btn.accent:hover {
+    background: #e85d0f; transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 8px 22px rgba(255, 107, 26, 0.4);
+  }
+
+  .dropdown { position: relative; }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    background: var(--bg-card); border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.08);
+    padding: 6px; min-width: 220px;
+    border: 1px solid var(--line);
+    opacity: 0; visibility: hidden;
+    transform: translateY(-6px) scale(0.97);
+    transform-origin: top right;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 80;
+  }
+  .dropdown.open .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+  .dropdown-menu button {
+    width: 100%; border: 0; background: transparent;
+    padding: 10px 12px; font-size: 12.5px; font-weight: 500;
+    color: var(--ink); cursor: pointer; border-radius: 8px;
+    text-align: left; display: flex; align-items: center; gap: 11px;
+    font-family: inherit; transition: background 0.12s ease;
+  }
+  .dropdown-menu button:hover { background: rgba(24, 22, 15, 0.05); }
+  .dropdown-menu button svg { width: 14px; height: 14px; color: var(--ink-soft); flex-shrink: 0; }
+  .dropdown-menu .menu-label {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 600; padding: 10px 12px 4px;
+  }
+  .dropdown-menu .menu-separator {
+    height: 1px; background: var(--line); margin: 6px 4px;
+  }
+
+  /* ═══ Sidebar ═══ */
+  .sidebar {
+    position: fixed;
+    top: 64px; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(1.3);
+    -webkit-backdrop-filter: blur(20px) saturate(1.3);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    z-index: 50;
+    padding: 20px 16px 30px;
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 3px; }
+
+  .sb-section { margin-bottom: 20px; }
+  .sb-label {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: -0.01em;
+  }
+  .sb-label::before {
+    content: '';
+    width: 4px; height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .sb-hint {
+    font-size: 10.5px; color: var(--ink-faint);
+    margin-top: 7px; line-height: 1.4;
+  }
+
+  /* Theme chips */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .theme-chip {
+    position: relative; aspect-ratio: 1;
+    border: 0; cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    font-family: inherit; padding: 0; overflow: hidden;
+  }
+  .theme-chip .chip-inner {
+    width: 100%; height: 100%;
+    border-radius: 10px;
+    display: grid; place-items: end center;
+    padding-bottom: 4px;
+    color: #fff; font-size: 8px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .theme-chip:hover { transform: translateY(-2px); }
+  .theme-chip.active .chip-inner {
+    box-shadow:
+      0 0 0 2.5px var(--bg),
+      0 0 0 4.5px var(--ink),
+      0 6px 16px rgba(0,0,0,0.15);
+  }
+
+  /* Hex input row */
+  .hex-row {
+    display: flex; gap: 6px; margin-top: 8px;
+    align-items: center;
+  }
+  .hex-swatch {
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid var(--line); flex-shrink: 0;
+    cursor: pointer; position: relative; overflow: hidden;
+  }
+  .hex-swatch input[type="color"] {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; border: 0;
+  }
+  .hex-input {
+    flex: 1; min-width: 0;
+    padding: 7px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-family: 'Manrope', monospace;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.03em;
+    outline: none;
+    background: #fff;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .hex-input:focus { border-color: var(--ink); }
+  .hex-apply {
+    border: 0; background: var(--ink); color: #fff;
+    padding: 7px 10px; font-size: 11px; font-weight: 600;
+    border-radius: 8px; cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .hex-apply:hover { background: #2a2820; }
+  .hex-copy {
+    border: 0; background: rgba(24,22,15,0.05);
+    color: var(--ink-soft); padding: 7px 9px;
+    font-size: 11px; border-radius: 8px; cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .hex-copy:hover { background: rgba(24,22,15,0.1); color: var(--ink); }
+  .hex-copy svg { width: 11px; height: 11px; display: block; }
+
+  /* Text color swatches */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+  }
+  .color-swatch {
+    aspect-ratio: 1;
+    border-radius: 7px;
+    border: 1.5px solid rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    position: relative;
+  }
+  .color-swatch:hover { transform: scale(1.12); border-color: var(--ink); }
+  .color-swatch.clear {
+    background: #fff;
+    display: grid; place-items: center;
+    font-size: 11px;
+  }
+
+  /* Emoji */
+  .emoji-tabs {
+    display: flex; gap: 2px; margin-bottom: 8px;
+    background: rgba(24, 22, 15, 0.04);
+    padding: 3px; border-radius: 9px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .emoji-tabs::-webkit-scrollbar { display: none; }
+  .emoji-tab {
+    border: 0; background: transparent;
+    padding: 6px 9px;
+    font-size: 10.5px; font-weight: 600;
+    color: var(--ink-soft);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .emoji-tab:hover { color: var(--ink); }
+  .emoji-tab.active { background: var(--ink); color: #fff; }
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+  }
+  .emoji-btn {
+    border: 0; background: transparent;
+    aspect-ratio: 1; cursor: pointer;
+    font-size: 17px; border-radius: 6px; padding: 0;
+    transition: background 0.15s ease;
+    display: grid; place-items: center;
+    line-height: 1;
+  }
+  .emoji-btn:hover { background: rgba(24, 22, 15, 0.07); }
+
+  /* Structure / Add buttons */
+  .add-btn {
+    width: 100%; border: 1.5px dashed rgba(24, 22, 15, 0.15);
+    background: transparent;
+    padding: 10px; border-radius: 10px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    color: var(--ink-soft); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.18s ease;
+  }
+  .add-btn:hover {
+    border-color: var(--ink); color: var(--ink);
+    background: rgba(24, 22, 15, 0.03);
+  }
+  .add-btn + .add-btn { margin-top: 6px; }
+
+  /* Sidebar toggle (mobile) */
+  .sb-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px; right: 20px;
+    width: 48px; height: 48px;
+    border-radius: 50%; border: 0;
+    background: var(--ink); color: #fff;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    z-index: 60;
+  }
+  .sb-toggle svg { width: 20px; height: 20px; }
+  .sb-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.3); z-index: 45;
+  }
+  .sb-backdrop.show { display: block; }
+
+  /* ═══ Floating Format Toolbar ═══ */
+  .format-toolbar {
+    position: absolute;
+    background: #18160f;
+    border-radius: 12px;
+    padding: 5px;
+    display: none;
+    gap: 2px;
+    align-items: center;
+    z-index: 150;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2), 0 20px 50px rgba(0,0,0,0.2);
+    animation: ftFadeIn 0.15s ease;
+    flex-wrap: wrap;
+    max-width: 340px;
+  }
+  .format-toolbar.show { display: flex; }
+  @keyframes ftFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .ft-btn {
+    border: 0; background: transparent;
+    color: rgba(255,255,255,0.75); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 7px;
+    display: grid; place-items: center;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    transition: all 0.12s ease;
+  }
+  .ft-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+  .ft-btn.active { color: var(--accent); background: rgba(255,107,26,0.15); }
+  .ft-btn svg { width: 14px; height: 14px; }
+  .ft-sep {
+    width: 1px; height: 18px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 2px;
+  }
+  .ft-size {
+    border: 0; background: rgba(255,255,255,0.08);
+    color: #fff; font-family: inherit;
+    font-size: 11.5px; font-weight: 600;
+    padding: 5px 8px; border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+  }
+  .ft-size option { background: #18160f; }
+  .ft-range-wrap {
+    display: flex; align-items: center; gap: 5px;
+    padding: 0 4px;
+    color: rgba(255,255,255,0.7);
+    font-size: 10px; font-weight: 600;
+  }
+  .ft-range {
+    -webkit-appearance: none; appearance: none;
+    width: 50px; height: 3px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px; outline: none;
+    cursor: pointer;
+  }
+  .ft-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%; border: 0;
+    cursor: pointer;
+  }
+  .ft-range::-moz-range-thumb {
+    width: 12px; height: 12px;
+    background: var(--accent); border: 0;
+    border-radius: 50%; cursor: pointer;
+  }
+  .ft-color-wrap {
+    position: relative;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: background 0.12s ease;
+  }
+  .ft-color-wrap:hover { background: rgba(255,255,255,0.1); }
+  .ft-color-swatch {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    background: var(--accent);
+    border: 2px solid #fff;
+    pointer-events: none;
+  }
+  .ft-color-wrap input[type="color"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; border: 0;
+  }
+
+  /* ═══ Canvas ═══ */
+  .canvas {
+    position: relative;
+    margin-left: var(--sidebar-w);
+    padding: 104px 32px 80px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1;
+  }
+  .frame-container {
+    transition: max-width 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+    max-width: 1024px; width: 100%;
+    position: relative;
+  }
+  .frame-label {
+    position: absolute;
+    top: -30px; left: 2px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .frame-label::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--accent); border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.18);
+  }
+  .frame {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.04),
+      0 2px 4px rgba(0,0,0,0.04),
+      0 16px 40px rgba(24, 22, 15, 0.06),
+      0 40px 80px rgba(24, 22, 15, 0.04);
+    border: 1px solid rgba(255,255,255,0.8);
+  }
+
+  /* ═══ Editable indicators ═══ */
+  #template [contenteditable="true"] {
+    outline: none; cursor: text; border-radius: 5px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+  }
+  #template [contenteditable="true"]:hover {
+    background: rgba(255, 107, 26, 0.05);
+    box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.05);
+  }
+  #template [contenteditable="true"]:focus {
+    background: rgba(255, 107, 26, 0.09);
+    box-shadow: 0 0 0 4px rgba(255, 107, 26, 0.18);
+  }
+  #template [data-role="guideline"] { position: relative; }
+  .row-delete {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 24px; height: 24px;
+    border: 0; border-radius: 50%;
+    background: rgba(229, 57, 53, 0.08);
+    color: #e53935; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 400; line-height: 1;
+    z-index: 5;
+    opacity: 0.55;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+  #template [data-role="guideline"]:hover .row-delete { opacity: 1; }
+  .row-delete:hover {
+    background: #e53935; color: #fff;
+    opacity: 1 !important;
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.35);
+  }
+
+  /* Inserted image styling (legacy — kept for imported files) */
+  #template img.inserted-img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 4px 0;
+    display: inline-block;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+  }
+  #template img.inserted-img:hover {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translate(-50%, 32px);
+    background: var(--ink); color: #fff;
+    padding: 13px 20px 13px 14px;
+    border-radius: 13px;
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 11px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12), 0 20px 50px rgba(0,0,0,0.2);
+    z-index: 200;
+    max-width: calc(100vw - 40px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast-ic {
+    width: 20px; height: 20px;
+    background: #22c55e; border-radius: 50%;
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .toast.loading .toast-ic { background: var(--accent); }
+  .toast.loading .toast-ic svg { display: none; }
+  .toast.loading .toast-ic::after {
+    content: ''; width: 10px; height: 10px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  .toast.error .toast-ic { background: #e53935; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 0px; }
+    .toolbar { padding: 0 14px; gap: 10px; height: 58px; }
+    .brand-sub { display: none; }
+    .brand-title { font-size: 17px; }
+    .device-btn span { display: none; }
+    .device-btn { padding: 7px 9px; }
+    .action-btn span { display: none; }
+    .action-btn { padding: 10px 11px; }
+    .canvas { padding: 82px 12px 40px; margin-left: 0; }
+    .frame-label { top: -24px; font-size: 9px; }
+    .sb-toggle { display: flex; }
+    .sidebar {
+      width: 320px; top: 58px;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+      background: rgba(255,255,255,0.97);
+    }
+    .sidebar.open { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<header class="toolbar">
+  <div class="brand">
+    <div class="brand-mark">K</div>
+    <div class="brand-text">
+      <div class="brand-title">Template Editor</div>
+      <div class="brand-sub">Konvy Campaign</div>
+    </div>
+  </div>
+
+  <div class="toolbar-spacer"></div>
+
+  <div class="device-switch" role="tablist">
+    <button class="device-btn" data-device="mobile" data-width="390">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <span>Mobile</span>
+    </button>
+    <button class="device-btn" data-device="tablet" data-width="768">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <span>iPad</span>
+    </button>
+    <button class="device-btn active" data-device="desktop" data-width="1024">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span>Desktop</span>
+    </button>
+  </div>
+
+  <button class="action-btn ghost" onclick="resetTemplate()" title="รีเซ็ต">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    <span>Reset</span>
+  </button>
+
+  <div class="dropdown" id="fileDropdown">
+    <button class="action-btn ghost" onclick="toggleFileMenu(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>ไฟล์</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px; height:10px; margin-left:-2px;"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="dropdown-menu" onclick="event.stopPropagation()">
+      <div class="menu-label">เปิดไฟล์เก่า</div>
+      <button onclick="triggerImport()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>นำเข้าไฟล์ (แก้ต่อ)</span>
+      </button>
+      <div class="menu-separator"></div>
+      <div class="menu-label">บันทึก</div>
+      <button onclick="saveWorkingFile()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        <span>เซฟไฟล์ทำงาน (.html)</span>
+      </button>
+      <button onclick="saveHTML()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 13l2 2 4-4"/></svg>
+        <span>เซฟ HTML (ขึ้นเว็บ)</span>
+      </button>
+      <button onclick="savePDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        <span>เซฟ PDF</span>
+      </button>
+      <div class="menu-separator"></div>
+      <button onclick="copyHTML()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span>คัดลอก HTML</span>
+      </button>
+    </div>
+  </div>
+
+  <button class="action-btn accent" onclick="sendToTeam()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    <span>ส่งให้ทีม</span>
+  </button>
+</header>
+
+<input type="file" id="importInput" accept=".html,text/html" style="display:none">
+
+<div class="sb-backdrop" id="sbBackdrop" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <!-- ═══ Theme ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">ธีมสีกรอบ</div>
+    <div class="theme-grid" id="themeGrid"></div>
+    <div class="hex-row">
+      <div class="hex-swatch" id="themeHexSwatch" style="background:#ff6b1a;">
+        <input type="color" id="themeColorInput" value="#ff6b1a">
+      </div>
+      <input type="text" class="hex-input" id="themeHexInput" value="#FF6B1A" maxlength="7" placeholder="#RRGGBB">
+      <button class="hex-apply" onclick="applyCustomTheme()">ใช้</button>
+    </div>
+    <div class="sb-hint">เลือก preset หรือกรอกโค้ดสี HEX เอง — สีกรอบทั้งหมดจะปรับตามอัตโนมัติ</div>
+  </div>
+
+  <!-- ═══ Text color ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">สีตัวอักษร</div>
+    <div class="color-grid" id="colorGrid"></div>
+    <div class="hex-row">
+      <div class="hex-swatch" id="textHexSwatch" style="background:#18160f;">
+        <input type="color" id="textColorInput" value="#18160f">
+      </div>
+      <input type="text" class="hex-input" id="textHexInput" value="#18160F" maxlength="7" placeholder="#RRGGBB">
+      <button class="hex-copy" id="textHexCopy" title="คัดลอกโค้ดสี">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button class="hex-apply" onclick="applyCustomTextColor()">ใช้</button>
+    </div>
+    <div class="sb-hint">เลือกข้อความก่อน แล้วคลิกสีหรือกรอกโค้ด</div>
+  </div>
+
+  <!-- ═══ Emoji ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">อีโมจิ & สัญลักษณ์</div>
+    <div class="emoji-tabs" id="emojiTabs"></div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="sb-hint">คลิกในข้อความก่อน แล้วคลิกอีโมจิ/สัญลักษณ์</div>
+  </div>
+
+  <!-- ═══ Structure ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">โครงสร้าง</div>
+    <button class="add-btn" onclick="addGuideline()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      เพิ่มหัวข้อในกรอบบน
+    </button>
+    <div class="sb-hint" style="margin-top:10px;">เพิ่มบรรทัดในกติกา/รางวัล: คลิกท้ายบรรทัดแล้วกด Enter</div>
+  </div>
+</aside>
+
+<button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()" title="เครื่องมือ">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+</button>
+
+<!-- Floating format toolbar -->
+<div class="format-toolbar" id="formatToolbar">
+  <select class="ft-size" id="ftSize" title="ขนาดฟอนต์">
+    <option value="">Size</option>
+    <option value="10">10px</option>
+    <option value="11">11px</option>
+    <option value="12">12px</option>
+    <option value="13">13px</option>
+    <option value="14">14px</option>
+    <option value="16">16px</option>
+    <option value="18">18px</option>
+    <option value="20">20px</option>
+    <option value="24">24px</option>
+    <option value="28">28px</option>
+  </select>
+  <div class="ft-sep"></div>
+  <button class="ft-btn" data-cmd="bold" title="ตัวหนา (Cmd/Ctrl+B)"><strong>B</strong></button>
+  <button class="ft-btn" data-cmd="italic" title="ตัวเอียง (Cmd/Ctrl+I)"><em>I</em></button>
+  <button class="ft-btn" data-cmd="underline" title="ขีดเส้นใต้ (Cmd/Ctrl+U)"><span style="text-decoration:underline">U</span></button>
+  <button class="ft-btn" data-cmd="strikeThrough" title="ขีดฆ่า"><span style="text-decoration:line-through">S</span></button>
+  <div class="ft-sep"></div>
+  <div class="ft-color-wrap" title="สีตัวอักษร">
+    <div class="ft-color-swatch" id="ftColorSwatch"></div>
+    <input type="color" id="ftColor" value="#ff6b1a">
+  </div>
+  <div class="ft-sep"></div>
+  <button class="ft-btn" data-cmd="justifyLeft" title="ชิดซ้าย">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+  </button>
+  <button class="ft-btn" data-cmd="justifyCenter" title="กึ่งกลาง">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
+  </button>
+  <button class="ft-btn" data-cmd="justifyRight" title="ชิดขวา">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
+  </button>
+  <div class="ft-sep"></div>
+  <div class="ft-range-wrap" title="ระยะห่างระหว่างบรรทัด">
+    <span>⇅</span>
+    <input type="range" class="ft-range" id="ftLineHeight" min="10" max="25" step="1" value="15">
+  </div>
+  <div class="ft-range-wrap" title="ระยะห่างระหว่างตัวอักษร">
+    <span>⟷</span>
+    <input type="range" class="ft-range" id="ftLetterSpacing" min="-2" max="10" step="0.5" value="0">
+  </div>
+</div>
+
+<main class="canvas">
+  <div class="frame-container" id="frame">
+    <div class="frame-label" id="frameLabel">Desktop · 1024px</div>
+    <div class="frame">
+      <div id="template"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">
+  <div class="toast-ic">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <span id="toastText">คัดลอก HTML เรียบร้อย</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const SEND_TO_EMAIL = 'jeera@konvy.com';
+const CAMPAIGN_NAME = 'Campaign Content';
+const FILE_PREFIX   = 'konvy-campaign';
+
+// ═══════════════════════════════════════════════════════════
+// COLOR UTILS
+// ═══════════════════════════════════════════════════════════
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16)
+  };
+}
+function hexToHSL(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const rN = r / 255, gN = g / 255, bN = b / 255;
+  const max = Math.max(rN, gN, bN), min = Math.min(rN, gN, bN);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case rN: h = ((gN - bN) / d + (gN < bN ? 6 : 0)); break;
+      case gN: h = ((bN - rN) / d + 2); break;
+      case bN: h = ((rN - gN) / d + 4); break;
+    }
+    h /= 6;
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => {
+    const col = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return Math.round(col * 255).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+function isValidHex(str) { return /^#?[0-9A-Fa-f]{6}$/.test(str); }
+function normalizeHex(str) {
+  if (!str) return null;
+  str = str.trim().toUpperCase();
+  if (!str.startsWith('#')) str = '#' + str;
+  return isValidHex(str) ? str : null;
+}
+function deriveThemeFromHex(accentHex) {
+  const hsl = hexToHSL(accentHex);
+  const rgb = hexToRgb(accentHex);
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  return {
+    titleColor: accentHex,
+    frame1Bg: '#ffffff',
+    frame1Border: hslToHex(hsl.h, clamp(hsl.s * 0.75, 20, 90), clamp(88, 80, 93)),
+    frame1ShadowRgba: `${rgb.r},${rgb.g},${rgb.b}`,
+    frame1Divider: hslToHex(hsl.h, clamp(hsl.s * 0.7, 20, 85), clamp(78, 70, 83)),
+    frame1Heading: hslToHex(hsl.h, hsl.s, clamp(hsl.l - 8, 20, 45)),
+    frame2Bg: hslToHex(hsl.h, clamp(hsl.s * 0.35, 10, 60), clamp(94, 92, 97)),
+    frame2Border: hslToHex(hsl.h, clamp(hsl.s * 0.7, 20, 85), clamp(86, 78, 90)),
+    frame2Heading: hslToHex(hsl.h, hsl.s, clamp(hsl.l - 3, 25, 50)),
+    rewardHeading: accentHex,
+    hashtagBg: '#ffffff',
+    hashtagBorder: accentHex,
+    hashtagStrong: hslToHex(hsl.h, hsl.s, clamp(hsl.l - 8, 20, 45)),
+    footnote: '#8d6e63'
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// THEMES (10 presets)
+// ═══════════════════════════════════════════════════════════
+const THEME_PRESETS = [
+  { key: 'orange',    label: 'Summer',   hex: '#ef6c00', preview: 'linear-gradient(135deg,#ff8a3d,#ef6c00)' },
+  { key: 'green',     label: 'Sport',    hex: '#2e7d32', preview: 'linear-gradient(135deg,#66bb6a,#2e7d32)' },
+  { key: 'blue',      label: 'Office',   hex: '#1565c0', preview: 'linear-gradient(135deg,#64b5f6,#1565c0)' },
+  { key: 'pink',      label: 'Beauty',   hex: '#c2185b', preview: 'linear-gradient(135deg,#f48fb1,#c2185b)' },
+  { key: 'purple',    label: 'Lux',      hex: '#6a1b9a', preview: 'linear-gradient(135deg,#ba68c8,#6a1b9a)' },
+  { key: 'teal',      label: 'Mint',     hex: '#00796b', preview: 'linear-gradient(135deg,#4db6ac,#00796b)' },
+  { key: 'coral',     label: 'Coral',    hex: '#e53935', preview: 'linear-gradient(135deg,#ef5350,#e53935)' },
+  { key: 'gold',      label: 'Gold',     hex: '#d4a017', preview: 'linear-gradient(135deg,#f9ca24,#d4a017)' },
+  { key: 'navy',      label: 'Navy',     hex: '#0d47a1', preview: 'linear-gradient(135deg,#3949ab,#0d47a1)' },
+  { key: 'brown',     label: 'Cocoa',    hex: '#5d4037', preview: 'linear-gradient(135deg,#8d6e63,#5d4037)' }
+];
+
+const ROLE_APPLIER = {
+  'title': (el, t) => { el.style.color = t.titleColor; },
+  'frame1': (el, t) => {
+    el.style.backgroundColor = t.frame1Bg;
+    el.style.borderColor = t.frame1Border;
+    el.style.boxShadow = `0 2px 8px rgba(${t.frame1ShadowRgba}, 0.1)`;
+  },
+  'frame1-divider': (el, t) => { el.style.borderBottomColor = t.frame1Divider; },
+  'frame1-heading': (el, t) => { el.style.color = t.frame1Heading; },
+  'frame2': (el, t) => {
+    el.style.backgroundColor = t.frame2Bg;
+    el.style.borderColor = t.frame2Border;
+  },
+  'frame2-heading': (el, t) => { el.style.color = t.frame2Heading; },
+  'reward-heading': (el, t) => { el.style.color = t.rewardHeading; },
+  'hashtag': (el, t) => {
+    el.style.backgroundColor = t.hashtagBg;
+    el.style.borderLeftColor = t.hashtagBorder;
+  },
+  'hashtag-strong': (el, t) => { el.style.color = t.hashtagStrong; },
+  'footnote': (el, t) => { el.style.color = t.footnote; }
+};
+
+// ═══════════════════════════════════════════════════════════
+// TEXT COLORS
+// ═══════════════════════════════════════════════════════════
+const TEXT_COLORS = [
+  '#18160f', '#e53935', '#ef6c00', '#f9a825',
+  '#43a047', '#00897b', '#1e88e5', '#5e35b1',
+  '#d81b60', '#c2185b', '#8d6e63', '#546e7a',
+  '#2e7d32', '#0d47a1', '#6a1b9a', '#ffffff'
+];
+
+// ═══════════════════════════════════════════════════════════
+// EMOJIS + SYMBOLS (7 categories)
+// ═══════════════════════════════════════════════════════════
+const EMOJIS = {
+  'ยอดนิยม':   ['✨','✅','⭐','🌟','💫','🎉','🎁','🏆','🔥','💯','💡','📌','🎯','⚡','❤️','💖','💝','💕','👍','🙌','👏','💪','🎊','🌈','☀️','🌙','⚠️','❗','💥','🧡','💛','💚','💙','💜','🤍','🖤'],
+  'บิวตี้':   ['💄','💅','💋','👜','👠','👗','🌸','🌺','🌹','👑','💍','💎','🧴','🧼','🪞','👸','💆','💆‍♀️','🧖‍♀️','🤳','🌷','🥀','💐','🌻','🌼','👓','🕶️','🎀','👒','🌿','👚','👛','👝','🛍️','🧖'],
+  'สุขภาพ':   ['💪','🏋️','🧘','🏃','🏃‍♀️','🚴','🧘‍♀️','🧗','⚽','🏀','🎾','🏊','🤸','🥊','⛹️','♨️','🏖️','🌊','🏝️','⛱️','🧊','💧','🫧','🍵','🥗','🥙','🍹','☀️','🌴','🥥','🏐','🏸','🏓','⛳','🥋'],
+  'ไลฟ์สไตล์': ['💼','💻','📱','📊','📈','⏰','✍️','📝','📚','📖','🖊️','📎','🖥️','⌨️','📅','🗂️','📋','🎀','🎁','🎈','📢','🔔','🔑','💳','💰','💵','🛒','🛍️','🎭','🎨','🖼️','✂️','📐','📏','🧮'],
+  'อาหาร':    ['🍔','🍕','🍣','🍜','🍱','🍛','🥗','🥙','🍰','🍩','🧁','🍪','🍎','🍓','🥭','🍑','🍇','🍊','🍍','🍌','🥑','🥥','☕','🍵','🍹','🍺','🧃','🍦','🥛','🍯','🍲','🍝','🥘','🍚','🍙'],
+  'ธรรมชาติ': ['🌸','🌺','🌻','🌷','🌹','🌼','🍀','🌿','🌱','🌾','🍃','🌳','🌲','🌴','🌵','🌊','🌅','🌄','🌠','🌙','☀️','⭐','🌟','⚡','🔥','💧','🌈','❄️','☁️','🌤️','🌦️','🌧️','⛅','🌬️','🌋'],
+  'สัญลักษณ์': ['✿','❀','❁','✾','❃','❋','✽','❂','❄','❅','❆','✦','✧','✩','✪','✫','✬','✭','✮','✯','✰','★','☆','✩','❖','♥','♡','❤','❥','❦','❧','✓','✔','✗','✘','❝','❞','→','←','↑','↓','➜','➟','➤','➥','✦','❂','❖']
+};
+
+// ═══════════════════════════════════════════════════════════
+// TEMPLATE HTML
+// ═══════════════════════════════════════════════════════════
+const INITIAL_HTML = `<p data-role="title" contenteditable="true" style="font-size:13px; margin-bottom:12px; color:#ef6c00; text-align:center; line-height:1.5; font-weight:bold;">
+  ☀️แดดแรงแค่ไหนก็ยังเป๊ะ! <br>แค่มี #ไอเทมหน้าร้อน☀️
+</p>
+
+<div data-role="frame1" style="margin-bottom:12px; background-color:#ffffff; padding:12px; border-radius:12px; border:1px solid #ffe0b2; box-shadow:0 2px 8px rgba(239,108,0,0.1);">
+
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:8px; padding-bottom:6px; border-bottom:1px dashed #ffcc80;">
+    <span style="font-size:15px; margin-right:8px;">💡</span>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#e65100; font-size:13px;">แนวทางการสร้างสรรค์คอนเทนต์</strong>
+  </div>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    🛡️ <strong>ทริคดูแลผิวสู้แดดเมืองไทย!</strong><br>
+    • แชร์ไอเทมกันแดด และสกินแคร์กู้ผิวที่ช่วยให้คุณสู้แดดได้อย่างมั่นใจ ไม่กลัวผิวเสียหรือหมองคล้ำ
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    💄 <strong>เมคอัพติดทนนาน</strong><br>
+    • รวมไอเทมคุมมันกันน้ำที่ช่วยล็อคเมคอัพให้สวยทนทาน ไม่ไหลเยิ้ม เป็นคราบ แม้ต้องเผชิญอากาศร้อนและเหงื่อ
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    🧊 <strong>ไอเทมเพิ่มความสดชื่น</strong><br>
+    • ป้ายยาบอดี้แคร์สูตรเย็นและน้ำหอมกลิ่นเฟรชที่ช่วยดับร้อนทันที เพิ่มความสดชื่นและพลังงานบวกให้ร่างกาย
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    🍹 <strong>ดูแลสุขภาพจากภายใน</strong><br>
+    • แชร์ไอเทมดูแลสุขภาพที่ช่วยบำรุงผิวให้โกลว์ใสจากภายในสู่ภายนอก พร้อมอวดผิวสวยต้อนรับซัมเมอร์อย่างมั่นใจ
+  </p>
+</div>
+
+<div data-role="frame2" style="margin-bottom:12px; background-color:#fff8e1; padding:12px; border-radius:12px; border:1px solid #ffecb3; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+
+  <div style="display:flex; align-items:center; margin-bottom:6px;">
+    <span style="font-size:15px; margin-right:8px;">✅</span>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#f57c00; font-size:13px;">กติกาและเงื่อนไขการร่วมสนุก</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
+    1. <strong>โพสต์รูปภาพ:</strong> รูปภาพอย่างน้อย 1 รูป พร้อมคำบรรยาย 100 ตัวอักษรขึ้นไป<br>
+    2. <strong>โพสต์วิดีโอ:</strong> ความยาววิดีโออย่างน้อย 15 วินาที<br>
+    3. เนื้อหาต้องเป็น<strong>ผลงานออริจินัล</strong> สร้างสรรค์ขึ้นเอง และ<strong>เกี่ยวข้องกับหัวข้อกิจกรรม</strong><br>
+    4. หากติดหลายแฮชแท็กจะยึดแฮชแท็กแรกเป็นหลัก <strong>(1 คอนเทนต์ รับรางวัลได้เพียง 1 กิจกรรมเท่านั้น)</strong>
+  </p>
+
+  <div data-role="hashtag" contenteditable="true" style="margin-top:10px; padding:8px 10px; background-color:#ffffff; border-left:4px solid #ff9800; border-radius:10px; font-size:12px; color:#5d4037;">
+    💡 ติดแฮชแท็ก <strong data-role="hashtag-strong" style="color:#e65100;">#ไอเทมหน้าร้อน</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; margin:12px 0 6px;">
+    <span style="font-size:15px; margin-right:8px;">🎁</span>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#ef6c00; font-size:13px;">รางวัลกิจกรรม</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:11px; line-height:1.6; margin:6px 0; color:#5d4037;">
+    <strong>1. รางวัลการเข้าร่วม</strong><br>
+     • แค่โพสต์ก็ได้แล้ว! รับเลย <strong>200 Konvy Points</strong> สำหรับคอนเทนต์ที่ผ่านการตรวจสอบเท่านั้น* (รับสิทธิ์ 1 ครั้ง ต่อผู้ใช้งาน)<br><br>
+
+    <strong>2. TOP 20 ดาวเด่นสายคอนเทนต์</strong><br>
+    • รับ <strong>Konvy Credit 500 บาท</strong><br>
+    Konvy Credit สามารถใช้แทนเงินสดได้* (รับสิทธิ์ 1 ครั้ง ต่อผู้ใช้งาน)
+  </p>
+
+  <p data-role="footnote" contenteditable="true" style="font-size:10px; line-height:1.5; margin:8px 0 0; color:#8d6e63;">
+    *เงื่อนไขเป็นไปตามที่บริษัทฯ กำหนด การตัดสินของทีมงานถือเป็นที่สิ้นสุด
+  </p>
+
+</div>`;
+
+const NEW_GUIDELINE_HTML = `<p data-role="guideline" contenteditable="true" style="font-size:11px; margin:8px 0; line-height:1.5;">
+    ✨ <strong>หัวข้อใหม่</strong><br>
+    • คำอธิบายที่นี่ คลิกเพื่อแก้ไข
+  </p>`;
+
+// Marker used in saved working files so we can auto-detect on import
+const WORKING_FILE_MARKER = '<!-- KONVY_EDITOR_WORKING_FILE -->';
+const CONTENT_START = '<!-- EDITOR_CONTENT_START -->';
+const CONTENT_END = '<!-- EDITOR_CONTENT_END -->';
+
+// ═══════════════════════════════════════════════════════════
+// DOM refs
+// ═══════════════════════════════════════════════════════════
+const templateEl = document.getElementById('template');
+const frameEl = document.getElementById('frame');
+const frameLabelEl = document.getElementById('frameLabel');
+const toastEl = document.getElementById('toast');
+const toastTextEl = document.getElementById('toastText');
+const fileDropdownEl = document.getElementById('fileDropdown');
+const sidebarEl = document.getElementById('sidebar');
+const sbBackdropEl = document.getElementById('sbBackdrop');
+const formatToolbarEl = document.getElementById('formatToolbar');
+const importInputEl = document.getElementById('importInput');
+
+let currentThemeHex = '#ef6c00';
+let savedRange = null;
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function getDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+function getEditableHTML() {
+  // Preserves data-role + contenteditable for re-editing
+  return templateEl.innerHTML.replace(/<button class="row-delete"[^>]*>×<\/button>/g, '').trim();
+}
+function getCleanHTML() {
+  // Strips editor attrs — for publishing
+  const clone = templateEl.cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  clone.querySelectorAll('[data-role]').forEach(el => el.removeAttribute('data-role'));
+  clone.querySelectorAll('.row-delete').forEach(el => el.remove());
+  clone.querySelectorAll('.inserted-img').forEach(el => el.classList.remove('inserted-img'));
+  return clone.innerHTML.trim();
+}
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Mount
+// ═══════════════════════════════════════════════════════════
+function mountTemplate(html) {
+  templateEl.innerHTML = html || INITIAL_HTML;
+  // Ensure contenteditable is set on all editable roles (for imported files)
+  templateEl.querySelectorAll('[data-role]').forEach(el => {
+    const role = el.dataset.role;
+    const editableRoles = ['title', 'frame1-heading', 'guideline', 'frame2-heading', 'hashtag', 'reward-heading', 'footnote'];
+    if (editableRoles.includes(role) && !el.hasAttribute('contenteditable')) {
+      el.setAttribute('contenteditable', 'true');
+    }
+  });
+  // Also ensure p/div inside frame2 (the rules/rewards text) stay editable
+  const frame2 = templateEl.querySelector('[data-role="frame2"]');
+  if (frame2) {
+    frame2.querySelectorAll('p, div').forEach(el => {
+      if (!el.hasAttribute('data-role') && el.tagName === 'P' && !el.hasAttribute('contenteditable')) {
+        // top-level p without role => text paragraph
+        const parent = el.parentElement;
+        if (parent === frame2) el.setAttribute('contenteditable', 'true');
+      }
+    });
+  }
+  attachGuidelineControls();
+}
+mountTemplate();
+
+function attachGuidelineControls() {
+  templateEl.querySelectorAll('[data-role="guideline"]').forEach(g => {
+    if (g.querySelector('.row-delete')) return;
+    // Make room for delete button on the right
+    g.style.paddingRight = '34px';
+
+    const btn = document.createElement('button');
+    btn.className = 'row-delete';
+    btn.innerHTML = '×';
+    btn.title = 'ลบหัวข้อนี้';
+    btn.contentEditable = 'false';
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const guidelines = templateEl.querySelectorAll('[data-role="guideline"]');
+      if (guidelines.length <= 1) { showToast('ต้องมีอย่างน้อย 1 หัวข้อ'); return; }
+      if (confirm('ลบหัวข้อนี้?')) {
+        g.remove();
+        showToast('ลบหัวข้อแล้ว');
+      }
+    });
+    g.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════
+function renderThemeChips() {
+  const grid = document.getElementById('themeGrid');
+  grid.innerHTML = '';
+  THEME_PRESETS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-chip' + (p.hex.toLowerCase() === currentThemeHex.toLowerCase() ? ' active' : '');
+    btn.innerHTML = `<div class="chip-inner" style="background:${p.preview};">${p.label}</div>`;
+    btn.title = `${p.label} ${p.hex}`;
+    btn.addEventListener('click', () => applyThemeByHex(p.hex, p.label));
+    grid.appendChild(btn);
+  });
+}
+
+function applyThemeByHex(hex, label) {
+  const norm = normalizeHex(hex);
+  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง', { error: true }); return; }
+  currentThemeHex = norm;
+  const theme = deriveThemeFromHex(norm);
+  templateEl.querySelectorAll('[data-role]').forEach(el => {
+    const role = el.dataset.role;
+    if (ROLE_APPLIER[role]) ROLE_APPLIER[role](el, theme);
+  });
+  // Sync UI
+  document.getElementById('themeHexInput').value = norm;
+  document.getElementById('themeColorInput').value = norm;
+  document.getElementById('themeHexSwatch').style.background = norm;
+  // Update preset active
+  document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('active'));
+  const preset = THEME_PRESETS.find(p => p.hex.toLowerCase() === norm.toLowerCase());
+  if (preset) {
+    const idx = THEME_PRESETS.indexOf(preset);
+    const chips = document.querySelectorAll('.theme-chip');
+    if (chips[idx]) chips[idx].classList.add('active');
+  }
+  showToast(label ? `ธีม ${label}` : `เปลี่ยนธีมเป็น ${norm}`);
+}
+
+function applyCustomTheme() {
+  const input = document.getElementById('themeHexInput').value;
+  const norm = normalizeHex(input);
+  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง (ตย. #FF6B1A)', { error: true }); return; }
+  applyThemeByHex(norm);
+}
+
+// Hex input ↔ color picker sync for theme
+document.getElementById('themeColorInput').addEventListener('input', (e) => {
+  const hex = e.target.value.toUpperCase();
+  document.getElementById('themeHexInput').value = hex;
+  document.getElementById('themeHexSwatch').style.background = hex;
+  applyThemeByHex(hex);
+});
+document.getElementById('themeHexInput').addEventListener('input', (e) => {
+  const norm = normalizeHex(e.target.value);
+  if (norm) {
+    document.getElementById('themeColorInput').value = norm;
+    document.getElementById('themeHexSwatch').style.background = norm;
+  }
+});
+document.getElementById('themeHexInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); applyCustomTheme(); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// TEXT COLOR
+// ═══════════════════════════════════════════════════════════
+function renderColorSwatches() {
+  const grid = document.getElementById('colorGrid');
+  grid.innerHTML = '';
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'color-swatch clear';
+  clearBtn.innerHTML = '🚫';
+  clearBtn.title = 'ล้างสี';
+  clearBtn.addEventListener('mousedown', (e) => e.preventDefault());
+  clearBtn.addEventListener('click', clearTextColor);
+  grid.appendChild(clearBtn);
+
+  TEXT_COLORS.forEach(color => {
+    const btn = document.createElement('button');
+    btn.className = 'color-swatch';
+    btn.style.background = color;
+    btn.title = color.toUpperCase();
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', () => {
+      document.getElementById('textHexInput').value = color.toUpperCase();
+      document.getElementById('textColorInput').value = color;
+      document.getElementById('textHexSwatch').style.background = color;
+      applyTextColor(color);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function applyTextColor(color) {
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('กรุณาเลือกข้อความก่อน');
+    return;
+  }
+  try {
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('foreColor', false, color);
+    showToast('เปลี่ยนสีแล้ว');
+  } catch (e) { console.error(e); }
+}
+
+function applyCustomTextColor() {
+  const input = document.getElementById('textHexInput').value;
+  const norm = normalizeHex(input);
+  if (!norm) { showToast('โค้ดสีไม่ถูกต้อง', { error: true }); return; }
+  applyTextColor(norm);
+}
+
+function clearTextColor() {
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('กรุณาเลือกข้อความก่อน');
+    return;
+  }
+  try {
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('removeFormat', false, null);
+    showToast('ล้างสีแล้ว');
+  } catch (e) { console.error(e); }
+}
+
+// Sync text color UI
+document.getElementById('textColorInput').addEventListener('input', (e) => {
+  const hex = e.target.value.toUpperCase();
+  document.getElementById('textHexInput').value = hex;
+  document.getElementById('textHexSwatch').style.background = hex;
+  applyTextColor(hex);
+});
+document.getElementById('textHexInput').addEventListener('input', (e) => {
+  const norm = normalizeHex(e.target.value);
+  if (norm) {
+    document.getElementById('textColorInput').value = norm;
+    document.getElementById('textHexSwatch').style.background = norm;
+  }
+});
+document.getElementById('textHexInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); applyCustomTextColor(); }
+});
+document.getElementById('textHexCopy').addEventListener('click', () => {
+  const hex = document.getElementById('textHexInput').value.toUpperCase();
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = hex; ta.style.cssText = 'position:fixed; top:-1000px;';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    showToast(`คัดลอก ${hex} แล้ว`);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(hex).then(() => showToast(`คัดลอก ${hex} แล้ว`)).catch(fallback);
+  } else { fallback(); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// EMOJI PICKER
+// ═══════════════════════════════════════════════════════════
+let currentEmojiTab = 'ยอดนิยม';
+function renderEmojiPicker() {
+  const tabsEl = document.getElementById('emojiTabs');
+  const gridEl = document.getElementById('emojiGrid');
+  tabsEl.innerHTML = '';
+  Object.keys(EMOJIS).forEach(cat => {
+    const t = document.createElement('button');
+    t.className = 'emoji-tab' + (cat === currentEmojiTab ? ' active' : '');
+    t.textContent = cat;
+    t.addEventListener('click', () => { currentEmojiTab = cat; renderEmojiPicker(); });
+    tabsEl.appendChild(t);
+  });
+  gridEl.innerHTML = '';
+  EMOJIS[currentEmojiTab].forEach(em => {
+    const b = document.createElement('button');
+    b.className = 'emoji-btn';
+    b.textContent = em;
+    b.title = 'คลิกเพื่อเพิ่ม';
+    b.addEventListener('mousedown', (e) => e.preventDefault());
+    b.addEventListener('click', () => insertEmoji(em));
+    gridEl.appendChild(b);
+  });
+}
+
+function insertEmoji(emoji) {
+  restoreSelection();
+  const sel = window.getSelection();
+  const hasRange = sel && sel.rangeCount > 0 && templateEl.contains(sel.getRangeAt(0).commonAncestorContainer);
+  if (hasRange) {
+    document.execCommand('insertText', false, emoji);
+    const newSel = window.getSelection();
+    if (newSel.rangeCount > 0) savedRange = newSel.getRangeAt(0).cloneRange();
+  } else {
+    const fallback = () => showToast(`${emoji} (คลิกที่ข้อความในเทมเพลตก่อน)`);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(emoji)
+        .then(() => showToast(`คัดลอก ${emoji} แล้ว ไปวางได้เลย`))
+        .catch(fallback);
+    } else { fallback(); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SELECTION TRACKING
+// ═══════════════════════════════════════════════════════════
+function restoreSelection() {
+  if (savedRange) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    try { sel.addRange(savedRange); } catch (e) {}
+  }
+}
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection();
+  if (sel.rangeCount === 0) return;
+  const r = sel.getRangeAt(0);
+  if (templateEl.contains(r.commonAncestorContainer)) {
+    savedRange = r.cloneRange();
+    updateFormatToolbar();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FLOATING FORMAT TOOLBAR
+// ═══════════════════════════════════════════════════════════
+function updateFormatToolbar() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) { hideFormatToolbar(); return; }
+  const range = sel.getRangeAt(0);
+  if (!templateEl.contains(range.commonAncestorContainer)) { hideFormatToolbar(); return; }
+  if (range.collapsed) {
+    // Still show if focus is inside template (for paragraph-level controls)
+    // but keep hidden to avoid clutter. Only show on actual selection.
+    hideFormatToolbar();
+    return;
+  }
+  const rect = range.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) { hideFormatToolbar(); return; }
+
+  formatToolbarEl.classList.add('show');
+  const tbRect = formatToolbarEl.getBoundingClientRect();
+  let top = rect.top + window.scrollY - tbRect.height - 10;
+  let left = rect.left + window.scrollX + rect.width / 2 - tbRect.width / 2;
+  // Clamp to viewport
+  if (top < window.scrollY + 70) top = rect.bottom + window.scrollY + 10;
+  if (left < 10) left = 10;
+  if (left + tbRect.width > window.innerWidth - 10) left = window.innerWidth - tbRect.width - 10;
+  formatToolbarEl.style.top = top + 'px';
+  formatToolbarEl.style.left = left + 'px';
+
+  // Update active states
+  ['bold','italic','underline','strikeThrough'].forEach(cmd => {
+    const btn = formatToolbarEl.querySelector(`[data-cmd="${cmd}"]`);
+    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
+  ['justifyLeft','justifyCenter','justifyRight'].forEach(cmd => {
+    const btn = formatToolbarEl.querySelector(`[data-cmd="${cmd}"]`);
+    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
+
+  // Update line-height / letter-spacing from current paragraph
+  const para = getCurrentBlock();
+  if (para) {
+    const cs = window.getComputedStyle(para);
+    const fs = parseFloat(cs.fontSize) || 11;
+    const lh = parseFloat(cs.lineHeight);
+    const ls = parseFloat(cs.letterSpacing);
+    if (!isNaN(lh)) document.getElementById('ftLineHeight').value = Math.round((lh / fs) * 10);
+    if (!isNaN(ls)) document.getElementById('ftLetterSpacing').value = ls;
+  }
+}
+
+function hideFormatToolbar() {
+  formatToolbarEl.classList.remove('show');
+}
+
+function getCurrentBlock() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  let node = sel.getRangeAt(0).commonAncestorContainer;
+  if (node.nodeType === 3) node = node.parentNode;
+  while (node && node !== templateEl) {
+    const d = window.getComputedStyle(node).display;
+    if (d === 'block' || d === 'flex') return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+
+// Format commands
+formatToolbarEl.querySelectorAll('[data-cmd]').forEach(btn => {
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click', () => {
+    restoreSelection();
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand(btn.dataset.cmd, false, null);
+    updateFormatToolbar();
+  });
+});
+
+// Font size
+document.getElementById('ftSize').addEventListener('change', (e) => {
+  const px = e.target.value;
+  if (!px) return;
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('กรุณาเลือกข้อความก่อน');
+    e.target.value = '';
+    return;
+  }
+  // Wrap selection in span with font-size
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('fontSize', false, '7'); // temporarily wrap
+  const fontElements = templateEl.querySelectorAll('font[size="7"]');
+  fontElements.forEach(f => {
+    const span = document.createElement('span');
+    span.style.fontSize = px + 'px';
+    while (f.firstChild) span.appendChild(f.firstChild);
+    f.parentNode.replaceChild(span, f);
+  });
+  e.target.value = '';
+});
+
+// Color picker in toolbar
+document.getElementById('ftColor').addEventListener('input', (e) => {
+  const hex = e.target.value;
+  document.getElementById('ftColorSwatch').style.background = hex;
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('foreColor', false, hex);
+});
+
+// Line-height slider (applies to parent block)
+document.getElementById('ftLineHeight').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value) / 10;
+  const block = getCurrentBlock();
+  if (block) block.style.lineHeight = val;
+});
+
+// Letter-spacing slider
+document.getElementById('ftLetterSpacing').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  const block = getCurrentBlock();
+  if (block) block.style.letterSpacing = val + 'px';
+});
+
+// Prevent toolbar from killing selection
+formatToolbarEl.addEventListener('mousedown', (e) => {
+  if (!['INPUT', 'SELECT'].includes(e.target.tagName)) e.preventDefault();
+});
+
+// Hide toolbar on scroll
+window.addEventListener('scroll', hideFormatToolbar, true);
+document.addEventListener('click', (e) => {
+  if (!formatToolbarEl.contains(e.target) && !templateEl.contains(e.target)) {
+    hideFormatToolbar();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// ADD GUIDELINE
+// ═══════════════════════════════════════════════════════════
+function addGuideline() {
+  const frame1 = templateEl.querySelector('[data-role="frame1"]');
+  if (!frame1) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = NEW_GUIDELINE_HTML;
+  const newP = tmp.firstElementChild;
+  frame1.appendChild(newP);
+  attachGuidelineControls();
+  newP.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showToast('เพิ่มหัวข้อใหม่แล้ว');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════════
+function toggleSidebar() {
+  sidebarEl.classList.toggle('open');
+  sbBackdropEl.classList.toggle('show');
+}
+function closeSidebar() {
+  sidebarEl.classList.remove('open');
+  sbBackdropEl.classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEVICE SWITCH
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.device-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    frameEl.style.maxWidth = btn.dataset.width + 'px';
+    const labels = { mobile: 'Mobile · 390px', tablet: 'iPad · 768px', desktop: 'Desktop · 1024px' };
+    frameLabelEl.textContent = labels[btn.dataset.device];
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// PASTE & ENTER
+// ═══════════════════════════════════════════════════════════
+templateEl.addEventListener('paste', (e) => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
+templateEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.execCommand('insertLineBreak');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FILE MENU
+// ═══════════════════════════════════════════════════════════
+function toggleFileMenu(ev) {
+  ev && ev.stopPropagation();
+  fileDropdownEl.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  if (!fileDropdownEl.contains(e.target)) fileDropdownEl.classList.remove('open');
+});
+
+// ═══════════════════════════════════════════════════════════
+// IMPORT WORKING FILE
+// ═══════════════════════════════════════════════════════════
+function triggerImport() {
+  fileDropdownEl.classList.remove('open');
+  importInputEl.click();
+}
+importInputEl.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const text = ev.target.result;
+    let content = null;
+    // Try marker-based extraction (working file)
+    const startIdx = text.indexOf(CONTENT_START);
+    const endIdx = text.indexOf(CONTENT_END);
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      content = text.substring(startIdx + CONTENT_START.length, endIdx).trim();
+    } else {
+      // Fallback: try to extract body or detect data-role elements
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      // Look for a #template div or any element with data-role
+      const container = doc.querySelector('#template');
+      if (container) {
+        content = container.innerHTML;
+      } else {
+        const rolesFound = doc.querySelectorAll('[data-role]');
+        if (rolesFound.length > 0) {
+          // Find common ancestor or just use body
+          content = doc.body.innerHTML;
+        } else {
+          showToast('ไม่พบข้อมูล editor ในไฟล์นี้', { error: true });
+          return;
+        }
+      }
+    }
+    if (content) {
+      if (confirm('นำเข้าไฟล์นี้? ข้อมูลปัจจุบันจะถูกแทนที่')) {
+        mountTemplate(content);
+        // Try to detect theme from imported content
+        detectAndSyncTheme();
+        showToast('นำเข้าไฟล์สำเร็จ ✓');
+      }
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function detectAndSyncTheme() {
+  // Try to read title color from imported file and sync UI
+  const title = templateEl.querySelector('[data-role="title"]');
+  if (title) {
+    const color = title.style.color;
+    if (color) {
+      // Convert rgb(...) to hex if needed
+      const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      let hex = null;
+      if (rgbMatch) {
+        hex = '#' + [1,2,3].map(i => parseInt(rgbMatch[i]).toString(16).padStart(2, '0')).join('').toUpperCase();
+      } else if (color.startsWith('#')) {
+        hex = color.toUpperCase();
+      }
+      if (hex) {
+        currentThemeHex = hex;
+        document.getElementById('themeHexInput').value = hex;
+        document.getElementById('themeColorInput').value = hex;
+        document.getElementById('themeHexSwatch').style.background = hex;
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVE / COPY
+// ═══════════════════════════════════════════════════════════
+function copyHTML() {
+  const html = getCleanHTML();
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = html; ta.style.cssText = 'position:fixed; top:-1000px;';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    showToast('คัดลอก HTML เรียบร้อย');
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(html).then(() => showToast('คัดลอก HTML เรียบร้อย')).catch(fallback);
+  } else { fallback(); }
+  fileDropdownEl.classList.remove('open');
+}
+
+function saveWorkingFile() {
+  const editableHTML = getEditableHTML();
+  const fullDoc = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${CAMPAIGN_NAME} — ไฟล์ทำงาน</title>
+${WORKING_FILE_MARKER}
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'IBM Plex Sans Thai', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px 14px; background: #f5f5f5; -webkit-font-smoothing: antialiased; }
+  .editor-notice { background: #fff3cd; border: 1px solid #ffe69c; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #664d03; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<div class="editor-notice">
+  📝 <strong>ไฟล์ทำงาน Konvy Editor</strong><br>
+  ไฟล์นี้เปิดดูได้ปกติ หรือเปิด Editor แล้วกด "นำเข้าไฟล์" เพื่อแก้ต่อ
+</div>
+<div id="template">
+${CONTENT_START}
+${editableHTML}
+${CONTENT_END}
+</div>
+</body>
+</html>`;
+  const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
+  downloadBlob(blob, `${FILE_PREFIX}-working-${getDateStr()}.html`);
+  showToast('เซฟไฟล์ทำงานเรียบร้อย ✓');
+  fileDropdownEl.classList.remove('open');
+}
+
+function saveHTML() {
+  const bodyHTML = getCleanHTML();
+  const fullDoc = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${CAMPAIGN_NAME}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'IBM Plex Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px 14px; background: #f5f5f5; -webkit-font-smoothing: antialiased; }
+</style>
+</head>
+<body>
+<!-- ↓↓↓ คัดลอกเฉพาะส่วนนี้ไปวางบนเว็บ ↓↓↓ -->
+${bodyHTML}
+<!-- ↑↑↑ สิ้นสุดเนื้อหา ↑↑↑ -->
+</body>
+</html>`;
+  const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
+  downloadBlob(blob, `${FILE_PREFIX}-${getDateStr()}.html`);
+  showToast('เซฟ HTML เรียบร้อย');
+  fileDropdownEl.classList.remove('open');
+}
+
+async function savePDF() {
+  fileDropdownEl.classList.remove('open');
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    showToast('กำลังโหลด library... กรุณาลองอีกครั้ง');
+    return;
+  }
+  showToast('กำลังสร้าง PDF...', { loading: true });
+
+  const RENDER_WIDTH = 420;
+  const renderContainer = document.createElement('div');
+  renderContainer.style.cssText = `
+    position: fixed; left: -99999px; top: 0;
+    width: ${RENDER_WIDTH}px; padding: 20px;
+    background: #ffffff;
+    font-family: 'IBM Plex Sans Thai', -apple-system, sans-serif;
+  `;
+  const clone = templateEl.cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  clone.querySelectorAll('.row-delete').forEach(el => el.remove());
+  renderContainer.appendChild(clone);
+  document.body.appendChild(renderContainer);
+
+  await new Promise(r => setTimeout(r, 300));
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+
+  try {
+    const canvas = await html2canvas(renderContainer, {
+      scale: 2, useCORS: true, backgroundColor: '#ffffff',
+      logging: false, letterRendering: true
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageW = 210, pageH = 297, margin = 12;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, imgW, imgH);
+    } else {
+      const pxPerMm = canvas.width / imgW;
+      const slicePxH = (pageH - margin * 2) * pxPerMm;
+      let y = 0, pageIdx = 0;
+      while (y < canvas.height) {
+        const sliceH = Math.min(slicePxH, canvas.height - y);
+        const pc = document.createElement('canvas');
+        pc.width = canvas.width; pc.height = sliceH;
+        const ctx = pc.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pc.width, pc.height);
+        ctx.drawImage(canvas, 0, -y);
+        if (pageIdx > 0) pdf.addPage();
+        pdf.addImage(pc.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, imgW, (sliceH * imgW) / canvas.width);
+        y += slicePxH; pageIdx++;
+      }
+    }
+    pdf.save(`${FILE_PREFIX}-${getDateStr()}.pdf`);
+    hideToast();
+    setTimeout(() => showToast('เซฟ PDF เรียบร้อย'), 100);
+  } catch (err) {
+    console.error(err);
+    hideToast();
+    setTimeout(() => showToast('เกิดข้อผิดพลาดในการสร้าง PDF', { error: true }), 100);
+  } finally {
+    document.body.removeChild(renderContainer);
+  }
+}
+
+async function sendToTeam() {
+  saveWorkingFile();
+  await new Promise(r => setTimeout(r, 200));
+  saveHTML();
+  await savePDF();
+  setTimeout(() => {
+    const subject = encodeURIComponent(`[${CAMPAIGN_NAME}] ส่งคอนเทนต์`);
+    const body = encodeURIComponent(
+`สวัสดีค่ะ
+
+ส่งคอนเทนต์ ${CAMPAIGN_NAME} ที่แก้ไขแล้วมาให้รีวิวค่ะ
+
+📎 ไฟล์ที่แนบ:
+   1. ไฟล์ทำงาน (.html) - สำหรับเปิดใน Editor แก้ต่อ
+   2. HTML สำเร็จ (.html) - สำหรับขึ้นเว็บ
+   3. PDF - สำหรับพรีวิว
+
+กรุณาแนบไฟล์ที่ดาวน์โหลดไว้ก่อนส่ง
+
+ขอบคุณค่ะ`
+    );
+    window.location.href = `mailto:${SEND_TO_EMAIL}?subject=${subject}&body=${body}`;
+  }, 600);
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════
+function resetTemplate() {
+  if (confirm('รีเซ็ต template กลับค่าเริ่มต้น?\nข้อมูลที่แก้ไขจะหายทั้งหมด')) {
+    currentThemeHex = '#ef6c00';
+    mountTemplate();
+    renderThemeChips();
+    document.getElementById('themeHexInput').value = '#EF6C00';
+    document.getElementById('themeColorInput').value = '#ef6c00';
+    document.getElementById('themeHexSwatch').style.background = '#ef6c00';
+    showToast('รีเซ็ตเรียบร้อย');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, opts = {}) {
+  toastTextEl.textContent = msg;
+  toastEl.classList.toggle('loading', !!opts.loading);
+  toastEl.classList.toggle('error', !!opts.error);
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!opts.loading) {
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove('show');
+      toastEl.classList.remove('error');
+    }, opts.duration || 2400);
+  }
+}
+function hideToast() {
+  toastEl.classList.remove('show');
+  toastEl.classList.remove('loading');
+  toastEl.classList.remove('error');
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+renderThemeChips();
+renderColorSwatches();
+renderEmojiPicker();
+document.getElementById('ftColorSwatch').style.background = currentThemeHex;
+</script>
+</body>
+</html>
