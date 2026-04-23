@@ -1,0 +1,2572 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Community Campaign Editor · Konvy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #fafbfc;
+    --bg-card: #ffffff;
+    --ink: #1a1625;
+    --ink-soft: #5f5b6b;
+    --ink-faint: #9c98a6;
+    --line: rgba(26, 22, 37, 0.08);
+    --accent: #F72D74;
+    --accent-soft: #fde4ee;
+    --konvy-pink: #F72D74;
+    --konvy-purple: #A557F4;
+    --konvy-blue: #55E5FC;
+    --konvy-green: #29D494;
+    --konvy-yellow: #FFE01C;
+    --sidebar-w: 300px;
+  }
+
+  html, body {
+    font-family: 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      radial-gradient(circle at 15% 5%, rgba(247, 45, 116, 0.06), transparent 45%),
+      radial-gradient(circle at 85% 15%, rgba(165, 87, 244, 0.05), transparent 40%),
+      radial-gradient(circle at 80% 85%, rgba(85, 229, 252, 0.04), transparent 45%),
+      radial-gradient(circle at 20% 95%, rgba(41, 212, 148, 0.04), transparent 40%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ═══ Toolbar ═══ */
+  .toolbar {
+    position: fixed; top: 0; left: 0; right: 0; height: 64px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(24px) saturate(1.6);
+    -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center;
+    padding: 0 24px; z-index: 100; gap: 14px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .brand-mark {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    border-radius: 10px;
+    display: grid; place-items: center;
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-weight: 700; color: #fff;
+    font-size: 17px; letter-spacing: -0.02em;
+    box-shadow: 0 2px 8px rgba(247, 45, 116, 0.25);
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1; gap: 5px; }
+  .brand-title {
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-size: 15px; font-weight: 600; letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  .brand-sub {
+    font-size: 9.5px; color: var(--ink-faint);
+    letter-spacing: 0.16em; text-transform: uppercase; font-weight: 600;
+    font-family: 'Noto Sans Thai', sans-serif;
+  }
+  .toolbar-spacer { flex: 1; }
+
+  .device-switch {
+    display: flex; background: rgba(26, 22, 37, 0.04);
+    padding: 4px; border-radius: 11px; gap: 2px;
+  }
+  .device-btn {
+    border: 0; background: transparent; font-family: inherit;
+    font-size: 12px; font-weight: 600; color: var(--ink-soft);
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.18s ease;
+  }
+  .device-btn:hover { color: var(--ink); }
+  .device-btn svg { width: 13px; height: 13px; }
+  .device-btn.active {
+    background: #fff; color: var(--accent);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06), 0 3px 8px rgba(247, 45, 116, 0.15);
+  }
+
+  /* Language switch */
+  .lang-switch {
+    display: flex; background: rgba(26, 22, 37, 0.04);
+    padding: 4px; border-radius: 11px; gap: 2px;
+  }
+  .lang-btn {
+    border: 0; background: transparent; font-family: inherit;
+    font-size: 11px; font-weight: 700; color: var(--ink-soft);
+    padding: 7px 10px; min-width: 38px;
+    border-radius: 8px; cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.18s ease;
+  }
+  .lang-btn:hover { color: var(--ink); }
+  .lang-btn.active {
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 3px 8px rgba(247, 45, 116, 0.25);
+  }
+
+  .action-btn {
+    border: 0; font-family: inherit;
+    font-size: 12px; font-weight: 600;
+    padding: 10px 14px; border-radius: 10px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 7px;
+    transition: all 0.18s ease;
+    letter-spacing: 0.01em; white-space: nowrap;
+  }
+  .action-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .action-btn.ghost { background: transparent; color: var(--ink-soft); }
+  .action-btn.ghost:hover { color: var(--ink); background: rgba(26, 22, 37, 0.05); }
+  .action-btn.accent {
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.08), 0 4px 14px rgba(247, 45, 116, 0.35);
+  }
+  .action-btn.accent:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 22px rgba(247, 45, 116, 0.45);
+  }
+
+  .dropdown { position: relative; }
+  .dropdown-menu {
+    position: absolute; top: calc(100% + 8px); right: 0;
+    background: var(--bg-card); border-radius: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.1), 0 20px 40px rgba(0,0,0,0.08);
+    padding: 6px; min-width: 220px;
+    border: 1px solid var(--line);
+    opacity: 0; visibility: hidden;
+    transform: translateY(-6px) scale(0.97);
+    transform-origin: top right;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 80;
+  }
+  .dropdown.open .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
+  .dropdown-menu button {
+    width: 100%; border: 0; background: transparent;
+    padding: 10px 12px; font-size: 12.5px; font-weight: 500;
+    color: var(--ink); cursor: pointer; border-radius: 8px;
+    text-align: left; display: flex; align-items: center; gap: 11px;
+    font-family: inherit; transition: background 0.12s ease;
+  }
+  .dropdown-menu button:hover { background: var(--accent-soft); color: var(--ink); }
+  .dropdown-menu button:hover svg { color: var(--accent); }
+  .dropdown-menu button svg { width: 14px; height: 14px; color: var(--ink-soft); flex-shrink: 0; }
+  .dropdown-menu .menu-label {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-faint); font-weight: 700; padding: 12px 14px 6px;
+  }
+  .dropdown-menu .menu-separator {
+    height: 1px; background: var(--line); margin: 6px 4px;
+  }
+
+  /* ─── Rich menu items with descriptions ─── */
+  .dropdown-menu.wide {
+    min-width: 320px;
+    padding: 8px;
+  }
+  .menu-item-rich {
+    width: 100% !important;
+    border: 0 !important;
+    background: transparent !important;
+    padding: 10px 12px !important;
+    border-radius: 10px !important;
+    text-align: left !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .menu-item-rich:hover {
+    background: var(--accent-soft) !important;
+  }
+  .menu-item-rich:hover .menu-icon {
+    background: #fff;
+    color: var(--accent);
+    box-shadow: 0 1px 4px rgba(247, 45, 116, 0.2);
+  }
+  .menu-item-rich .menu-icon {
+    width: 36px; height: 36px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: rgba(26, 22, 37, 0.05);
+    display: grid; place-items: center;
+    color: var(--ink-soft);
+    transition: all 0.15s ease;
+  }
+  .menu-item-rich .menu-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+    color: inherit !important;
+  }
+  .menu-item-rich .menu-text {
+    flex: 1;
+    min-width: 0;
+    padding-top: 2px;
+  }
+  .menu-item-rich .menu-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .menu-item-rich .menu-desc {
+    font-size: 11px;
+    color: var(--ink-faint);
+    line-height: 1.4;
+    margin-top: 3px;
+  }
+  .menu-badge {
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+  .menu-item-rich.highlight {
+    background: linear-gradient(135deg, rgba(247, 45, 116, 0.04), rgba(165, 87, 244, 0.04)) !important;
+  }
+  .menu-item-rich.highlight .menu-icon {
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    color: #fff;
+  }
+  .menu-item-rich.highlight:hover .menu-icon {
+    transform: scale(1.05);
+  }
+
+  /* ═══ Sidebar ═══ */
+  .sidebar {
+    position: fixed;
+    top: 64px; left: 0; bottom: 0;
+    width: var(--sidebar-w);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(1.5);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+    z-index: 50;
+    padding: 20px 16px 30px;
+  }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(247, 45, 116, 0.15); border-radius: 3px; }
+  .sidebar::-webkit-scrollbar-thumb:hover { background: rgba(247, 45, 116, 0.3); }
+
+  .sb-section { margin-bottom: 20px; }
+  .sb-label {
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 10px;
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: 0.01em;
+  }
+  .sb-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px rgba(247, 45, 116, 0.12);
+  }
+  .sb-hint {
+    font-size: 10.5px; color: var(--ink-faint);
+    margin-top: 7px; line-height: 1.4;
+  }
+
+  /* Theme chips */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+  }
+  .theme-chip {
+    position: relative; aspect-ratio: 1;
+    border: 0; cursor: pointer;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    font-family: inherit; padding: 0; overflow: hidden;
+  }
+  .theme-chip .chip-inner {
+    width: 100%; height: 100%;
+    border-radius: 10px;
+    display: grid; place-items: end center;
+    padding-bottom: 4px;
+    color: #fff; font-size: 8px; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  }
+  .theme-chip:hover { transform: translateY(-2px); }
+  .theme-chip.active .chip-inner {
+    box-shadow:
+      0 0 0 2.5px var(--bg),
+      0 0 0 4.5px var(--accent),
+      0 6px 16px rgba(247, 45, 116, 0.25);
+  }
+  .theme-chip.is-ci::after {
+    content: '';
+    position: absolute;
+    top: 3px; right: 3px;
+    width: 5px; height: 5px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+    z-index: 2;
+  }
+
+  .theme-section-label {
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 700;
+    margin: 10px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .theme-section-label::before,
+  .theme-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+
+  /* Hex input row */
+  .hex-row {
+    display: flex; gap: 6px; margin-top: 8px;
+    align-items: center;
+  }
+  .hex-swatch {
+    width: 36px; height: 36px; border-radius: 9px;
+    flex-shrink: 0; cursor: pointer; position: relative; overflow: visible;
+    /* Rainbow ring suggests this opens a color picker */
+    padding: 2px;
+    background:
+      conic-gradient(from 0deg,
+        #ff3b30, #ff9500, #ffcc00, #34c759,
+        #00c7be, #30b0c7, #007aff, #5856d6,
+        #af52de, #ff2d55, #ff3b30) !important;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    transition: all 0.18s ease;
+  }
+  .hex-swatch::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border-radius: 7px;
+    background: var(--current-color, transparent);
+    z-index: 1;
+  }
+  .hex-swatch::after {
+    /* Small chevron at bottom-right indicating dropdown/picker */
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 14px;
+    height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2318160f' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-size: 9px 9px;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: all 0.18s ease;
+    pointer-events: none;
+  }
+  .hex-swatch:hover {
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .hex-swatch:hover::after {
+    background-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    transform: scale(1.15);
+  }
+  .hex-swatch input[type="color"] {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; border: 0;
+    z-index: 3;
+  }
+  .hex-input {
+    flex: 1; min-width: 0;
+    padding: 7px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-family: 'Manrope', monospace;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.03em;
+    outline: none;
+    background: #fff;
+    color: var(--ink);
+    text-transform: uppercase;
+  }
+  .hex-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(247, 45, 116, 0.12); }
+  .hex-apply {
+    border: 0; background: linear-gradient(135deg, #F72D74, #A557F4);
+    color: #fff;
+    padding: 7px 12px; font-size: 11px; font-weight: 700;
+    border-radius: 8px; cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 6px rgba(247, 45, 116, 0.25);
+  }
+  .hex-apply:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(247, 45, 116, 0.4);
+  }
+  .hex-tool {
+    border: 0; background: rgba(26,22,37,0.05);
+    color: var(--ink-soft); padding: 7px 8px;
+    font-size: 11px; border-radius: 8px; cursor: pointer;
+    font-family: inherit; flex-shrink: 0;
+    transition: all 0.15s ease;
+    display: grid; place-items: center;
+    width: 32px; height: 32px;
+  }
+  .hex-tool:hover { background: var(--accent-soft); color: var(--accent); transform: translateY(-1px); }
+  .hex-tool:active { transform: translateY(0); }
+  .hex-tool svg { width: 13px; height: 13px; display: block; }
+  .hex-tool.eyedropper-active {
+    background: var(--accent);
+    color: #fff;
+    animation: pulse-pick 1s ease infinite;
+  }
+  @keyframes pulse-pick {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(247, 45, 116, 0.5); }
+    50% { box-shadow: 0 0 0 6px rgba(247, 45, 116, 0); }
+  }
+
+  /* Text color swatches */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+  }
+  .color-swatch {
+    aspect-ratio: 1;
+    border-radius: 7px;
+    border: 1.5px solid rgba(0,0,0,0.06);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    position: relative;
+  }
+  .color-swatch:hover { transform: scale(1.12); border-color: var(--accent); }
+  .color-swatch.clear {
+    background: #fff;
+    display: grid; place-items: center;
+    font-size: 11px;
+  }
+
+  /* Emoji */
+  .emoji-tabs {
+    display: flex; gap: 2px; margin-bottom: 8px;
+    background: rgba(26, 22, 37, 0.04);
+    padding: 3px; border-radius: 9px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .emoji-tabs::-webkit-scrollbar { display: none; }
+  .emoji-tab {
+    border: 0; background: transparent;
+    padding: 6px 9px;
+    font-size: 10.5px; font-weight: 600;
+    color: var(--ink-soft);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+  .emoji-tab:hover { color: var(--ink); }
+  .emoji-tab.active {
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(247, 45, 116, 0.3);
+  }
+  .emoji-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 2px;
+  }
+  .emoji-btn {
+    border: 0; background: transparent;
+    aspect-ratio: 1; cursor: pointer;
+    font-size: 17px; border-radius: 6px; padding: 0;
+    transition: background 0.15s ease;
+    display: grid; place-items: center;
+    line-height: 1;
+  }
+  .emoji-btn:hover { background: var(--accent-soft); }
+
+  /* Structure / Add buttons */
+  .add-btn {
+    width: 100%; border: 1.5px dashed rgba(247, 45, 116, 0.3);
+    background: transparent;
+    padding: 10px; border-radius: 10px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    color: var(--ink-soft); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: all 0.18s ease;
+  }
+  .add-btn:hover {
+    border-color: var(--accent); color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .add-btn + .add-btn { margin-top: 6px; }
+
+  /* Sidebar toggle (mobile) */
+  .sb-toggle {
+    display: none;
+    position: fixed;
+    bottom: 20px; right: 20px;
+    width: 48px; height: 48px;
+    border-radius: 50%; border: 0;
+    background: linear-gradient(135deg, #F72D74 0%, #A557F4 100%);
+    color: #fff;
+    cursor: pointer;
+    align-items: center; justify-content: center;
+    box-shadow: 0 6px 20px rgba(247, 45, 116, 0.4);
+    z-index: 60;
+  }
+  .sb-toggle svg { width: 20px; height: 20px; }
+  .sb-backdrop {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.3); z-index: 45;
+  }
+  .sb-backdrop.show { display: block; }
+
+  /* ═══ Floating Format Toolbar ═══ */
+  .format-toolbar {
+    position: absolute;
+    background: #1a1625;
+    border-radius: 12px;
+    padding: 5px;
+    display: none;
+    gap: 2px;
+    align-items: center;
+    z-index: 150;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2), 0 20px 50px rgba(26, 22, 37, 0.2);
+    animation: ftFadeIn 0.15s ease;
+    flex-wrap: wrap;
+    max-width: 340px;
+  }
+  .format-toolbar.show { display: flex; }
+  @keyframes ftFadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .ft-btn {
+    border: 0; background: transparent;
+    color: rgba(255,255,255,0.75); cursor: pointer;
+    width: 30px; height: 30px; border-radius: 7px;
+    display: grid; place-items: center;
+    font-family: inherit; font-size: 13px; font-weight: 600;
+    transition: all 0.12s ease;
+  }
+  .ft-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+  .ft-btn.active { color: var(--konvy-pink); background: rgba(247, 45, 116, 0.15); }
+  .ft-btn svg { width: 14px; height: 14px; }
+  .ft-sep {
+    width: 1px; height: 18px;
+    background: rgba(255,255,255,0.15);
+    margin: 0 2px;
+  }
+  .ft-size {
+    border: 0; background: rgba(255,255,255,0.08);
+    color: #fff; font-family: inherit;
+    font-size: 11.5px; font-weight: 600;
+    padding: 5px 8px; border-radius: 6px;
+    cursor: pointer;
+    outline: none;
+  }
+  .ft-size option { background: #1a1625; }
+  .ft-range-wrap {
+    display: flex; align-items: center; gap: 5px;
+    padding: 0 4px;
+    color: rgba(255,255,255,0.7);
+    font-size: 10px; font-weight: 600;
+  }
+  .ft-range {
+    -webkit-appearance: none; appearance: none;
+    width: 50px; height: 3px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px; outline: none;
+    cursor: pointer;
+  }
+  .ft-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px; height: 12px;
+    background: var(--konvy-pink);
+    border-radius: 50%; border: 0;
+    cursor: pointer;
+  }
+  .ft-range::-moz-range-thumb {
+    width: 12px; height: 12px;
+    background: var(--konvy-pink); border: 0;
+    border-radius: 50%; cursor: pointer;
+  }
+  .ft-color-wrap {
+    position: relative;
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    cursor: pointer;
+    border-radius: 7px;
+    transition: background 0.12s ease;
+  }
+  .ft-color-wrap:hover { background: rgba(255,255,255,0.1); }
+  .ft-color-swatch {
+    width: 18px; height: 18px;
+    border-radius: 5px;
+    background: var(--konvy-pink);
+    border: 2px solid #fff;
+    pointer-events: none;
+  }
+  .ft-color-wrap input[type="color"] {
+    position: absolute; inset: 0;
+    opacity: 0; cursor: pointer; border: 0;
+  }
+
+  /* ═══ Canvas ═══ */
+  .canvas {
+    position: relative;
+    margin-left: var(--sidebar-w);
+    padding: 104px 32px 80px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    z-index: 1;
+  }
+  .frame-container {
+    transition: max-width 0.45s cubic-bezier(0.65, 0, 0.35, 1);
+    max-width: 1024px; width: 100%;
+    position: relative;
+  }
+  .frame-label {
+    position: absolute;
+    top: -30px; left: 2px;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    font-weight: 600;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .frame-label::before {
+    content: ''; width: 6px; height: 6px;
+    background: linear-gradient(135deg, #F72D74, #A557F4);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgba(247, 45, 116, 0.18);
+  }
+  .frame {
+    background: #F5F6F7;
+    border-radius: 18px;
+    padding: 24px 16px;
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.04),
+      0 2px 4px rgba(0,0,0,0.04),
+      0 16px 40px rgba(26, 22, 37, 0.06),
+      0 40px 80px rgba(26, 22, 37, 0.04);
+    border: 1px solid rgba(255,255,255,0.8);
+    /* Match Konvy Display CSS exactly */
+    font-family: Roboto, Tahoma, -apple-system, 'Microsoft YaHei', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #000;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* ═══ Editable indicators ═══ */
+  #template [contenteditable="true"] {
+    outline: none; cursor: text; border-radius: 5px;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+  }
+  #template [contenteditable="true"]:hover {
+    background: rgba(247, 45, 116, 0.05);
+    box-shadow: 0 0 0 4px rgba(247, 45, 116, 0.05);
+  }
+  #template [contenteditable="true"]:focus {
+    background: rgba(247, 45, 116, 0.09);
+    box-shadow: 0 0 0 4px rgba(247, 45, 116, 0.18);
+  }
+  #template [data-role="guideline"] { position: relative; }
+  .row-delete {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 24px; height: 24px;
+    border: 0; border-radius: 50%;
+    background: rgba(229, 57, 53, 0.08);
+    color: #e53935; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 400; line-height: 1;
+    z-index: 5;
+    opacity: 0.55;
+    transition: all 0.15s ease;
+    padding: 0;
+  }
+  #template [data-role="guideline"]:hover .row-delete { opacity: 1; }
+  .row-delete:hover {
+    background: #e53935; color: #fff;
+    opacity: 1 !important;
+    transform: scale(1.12);
+    box-shadow: 0 2px 8px rgba(229, 57, 53, 0.35);
+  }
+
+  /* Inserted image styling (legacy — kept for imported files) */
+  #template img.inserted-img {
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 4px 0;
+    display: inline-block;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+  }
+  #template img.inserted-img:hover {
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 28px; left: 50%;
+    transform: translate(-50%, 32px);
+    background: var(--ink); color: #fff;
+    padding: 13px 20px 13px 14px;
+    border-radius: 13px;
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 11px;
+    opacity: 0; pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.12), 0 20px 50px rgba(0,0,0,0.2);
+    z-index: 200;
+    max-width: calc(100vw - 40px);
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .toast-ic {
+    width: 20px; height: 20px;
+    background: #22c55e; border-radius: 50%;
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .toast.loading .toast-ic { background: var(--accent); }
+  .toast.loading .toast-ic svg { display: none; }
+  .toast.loading .toast-ic::after {
+    content: ''; width: 10px; height: 10px;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: #fff; border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  .toast.error .toast-ic { background: #e53935; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    :root { --sidebar-w: 0px; }
+    .toolbar { padding: 0 14px; gap: 10px; height: 58px; }
+    .brand-sub { display: none; }
+    .brand-title { font-size: 14px; }
+    .device-btn span { display: none; }
+    .device-btn { padding: 7px 9px; }
+    .action-btn span { display: none; }
+    .action-btn { padding: 10px 11px; }
+    .canvas { padding: 82px 12px 40px; margin-left: 0; }
+    .frame-label { top: -24px; font-size: 9px; }
+    .sb-toggle { display: flex; }
+    .sidebar {
+      width: 320px; top: 58px;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.65, 0, 0.35, 1);
+      background: rgba(255,255,255,0.97);
+    }
+    .sidebar.open { transform: translateX(0); }
+  }
+</style>
+</head>
+<body>
+
+<header class="toolbar">
+  <div class="brand">
+    <div class="brand-mark">K</div>
+    <div class="brand-text">
+      <div class="brand-title">Community Campaign Editor</div>
+      <div class="brand-sub">Konvy</div>
+    </div>
+  </div>
+
+  <div class="toolbar-spacer"></div>
+
+  <div class="device-switch" role="tablist">
+    <button class="device-btn" data-device="mobile" data-width="390">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <span>Mobile</span>
+    </button>
+    <button class="device-btn" data-device="tablet" data-width="768">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      <span>iPad</span>
+    </button>
+    <button class="device-btn active" data-device="desktop" data-width="1024">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <span>Desktop</span>
+    </button>
+  </div>
+
+  <div class="lang-switch" role="tablist">
+    <button class="lang-btn active" data-lang="th" title="Thai">TH</button>
+    <button class="lang-btn" data-lang="en" title="English">EN</button>
+    <button class="lang-btn" data-lang="zh" title="Chinese">中</button>
+  </div>
+
+  <button class="action-btn ghost" onclick="resetTemplate()" title="Reset">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+    <span>Reset</span>
+  </button>
+
+  <div class="dropdown" id="fileDropdown">
+    <button class="action-btn ghost" onclick="toggleFileMenu(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <span>File</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:10px; height:10px; margin-left:-2px;"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+    <div class="dropdown-menu wide" onclick="event.stopPropagation()">
+      <div class="menu-label">📂 Open file</div>
+      <button onclick="triggerImport()" class="menu-item-rich">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Import work file</div>
+          <div class="menu-desc">Open a saved file to keep editing</div>
+        </div>
+      </button>
+
+      <div class="menu-separator"></div>
+      <div class="menu-label">💾 Save your work</div>
+      <button onclick="saveWorkingFile()" class="menu-item-rich highlight">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Save work file <span class="menu-badge">RECOMMENDED</span></div>
+          <div class="menu-desc">For continuing later — keeps all 3 languages</div>
+        </div>
+      </button>
+
+      <div class="menu-separator"></div>
+      <div class="menu-label">🚀 Export for publishing</div>
+      <button onclick="saveHTML()" class="menu-item-rich">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M10 13l2 2 4-4"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Download HTML</div>
+          <div class="menu-desc">Ready to upload to website</div>
+        </div>
+      </button>
+      <button onclick="copyHTML()" class="menu-item-rich">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Copy HTML code</div>
+          <div class="menu-desc">Paste directly into CMS / dev</div>
+        </div>
+      </button>
+      <button onclick="savePDF()" class="menu-item-rich">
+        <div class="menu-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+        </div>
+        <div class="menu-text">
+          <div class="menu-title">Download PDF</div>
+          <div class="menu-desc">For preview / approval</div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <button class="action-btn ghost" onclick="copyHTML()" title="Copy HTML">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    <span>Copy HTML</span>
+  </button>
+</header>
+
+<input type="file" id="importInput" accept=".html,text/html" style="display:none">
+
+<div class="sb-backdrop" id="sbBackdrop" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <!-- ═══ Theme ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">Frame Theme</div>
+    <div class="theme-section-label">Konvy CI</div>
+    <div class="theme-grid" id="themeGridCI"></div>
+    <div class="theme-section-label">More Ideas</div>
+    <div class="theme-grid" id="themeGridExtra"></div>
+    <div class="hex-row">
+      <div class="hex-swatch" id="themeHexSwatch" style="--current-color:#F72D74;">
+        <input type="color" id="themeColorInput" value="#F72D74">
+      </div>
+      <input type="text" class="hex-input" id="themeHexInput" value="#F72D74" maxlength="7" placeholder="#RRGGBB">
+      <button class="hex-tool" id="themeEyedropper" title="Pick color from screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
+      </button>
+      <button class="hex-apply" onclick="applyCustomTheme()">Apply</button>
+    </div>
+    <div class="sb-hint">Click 🎨 to open color picker, type HEX, or use 💧 to pick color from screen</div>
+  </div>
+
+  <!-- ═══ Text color ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">Text Color</div>
+    <div class="color-grid" id="colorGrid"></div>
+    <div class="hex-row">
+      <div class="hex-swatch" id="textHexSwatch" style="--current-color:#F72D74;">
+        <input type="color" id="textColorInput" value="#F72D74">
+      </div>
+      <input type="text" class="hex-input" id="textHexInput" value="#F72D74" maxlength="7" placeholder="#RRGGBB">
+      <button class="hex-tool" id="textEyedropper" title="Pick color from screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 22 1-1h3l9-9"/><path d="M3 21v-3l9-9"/><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z"/></svg>
+      </button>
+      <button class="hex-tool" id="textHexCopy" title="Copy color code">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button class="hex-apply" onclick="applyCustomTextColor()">Apply</button>
+    </div>
+    <div class="sb-hint">Select text first → click 🎨 picker, type HEX, or use 💧 eyedropper</div>
+  </div>
+
+  <!-- ═══ Emoji ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">Emoji & Symbols</div>
+    <div class="emoji-tabs" id="emojiTabs"></div>
+    <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="sb-hint">Click in text first, then click an emoji/symbol</div>
+  </div>
+
+  <!-- ═══ Structure ═══ -->
+  <div class="sb-section">
+    <div class="sb-label">Structure</div>
+    <button class="add-btn" onclick="addGuideline()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px; height:13px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add section to top frame
+    </button>
+    <div class="sb-hint" style="margin-top:10px;">To add a line in rules/rewards: click end of line and press Enter</div>
+  </div>
+</aside>
+
+<button class="sb-toggle" id="sbToggle" onclick="toggleSidebar()" title="Tools">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+</button>
+
+<!-- Floating format toolbar -->
+<div class="format-toolbar" id="formatToolbar">
+  <select class="ft-size" id="ftSize" title="Font size">
+    <option value="">Size</option>
+    <option value="11">11px</option>
+    <option value="12">12px (footnote)</option>
+    <option value="13">13px (body)</option>
+    <option value="14">14px (default)</option>
+    <option value="15">15px (heading)</option>
+    <option value="16">16px</option>
+    <option value="18">18px</option>
+    <option value="20">20px</option>
+    <option value="24">24px</option>
+    <option value="28">28px</option>
+  </select>
+  <div class="ft-sep"></div>
+  <button class="ft-btn" data-cmd="bold" title="Bold (Cmd/Ctrl+B)"><strong>B</strong></button>
+  <button class="ft-btn" data-cmd="italic" title="Italic (Cmd/Ctrl+I)"><em>I</em></button>
+  <button class="ft-btn" data-cmd="underline" title="Underline (Cmd/Ctrl+U)"><span style="text-decoration:underline">U</span></button>
+  <button class="ft-btn" data-cmd="strikeThrough" title="Strikethrough"><span style="text-decoration:line-through">S</span></button>
+  <div class="ft-sep"></div>
+  <div class="ft-color-wrap" title="Text color">
+    <div class="ft-color-swatch" id="ftColorSwatch"></div>
+    <input type="color" id="ftColor" value="#F72D74">
+  </div>
+  <div class="ft-sep"></div>
+  <button class="ft-btn" data-cmd="justifyLeft" title="Align left">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
+  </button>
+  <button class="ft-btn" data-cmd="justifyCenter" title="Align center">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="10" x2="6" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="18" y1="18" x2="6" y2="18"/></svg>
+  </button>
+  <button class="ft-btn" data-cmd="justifyRight" title="Align right">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="21" y1="10" x2="7" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="21" y1="18" x2="7" y2="18"/></svg>
+  </button>
+  <div class="ft-sep"></div>
+  <div class="ft-range-wrap" title="Line height">
+    <span>⇅</span>
+    <input type="range" class="ft-range" id="ftLineHeight" min="10" max="25" step="1" value="15">
+  </div>
+  <div class="ft-range-wrap" title="Letter spacing">
+    <span>⟷</span>
+    <input type="range" class="ft-range" id="ftLetterSpacing" min="-2" max="10" step="0.5" value="0">
+  </div>
+</div>
+
+<main class="canvas">
+  <div class="frame-container" id="frame">
+    <div class="frame-label" id="frameLabel">Desktop · 1024px</div>
+    <div class="frame">
+      <div id="template"></div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast">
+  <div class="toast-ic">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <span id="toastText">HTML copied</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════
+const CAMPAIGN_NAME = 'Campaign Content';
+const FILE_PREFIX   = 'konvy-campaign';
+
+// ═══════════════════════════════════════════════════════════
+// COLOR UTILS
+// ═══════════════════════════════════════════════════════════
+function hexToRgb(hex) {
+  hex = hex.replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  return {
+    r: parseInt(hex.substring(0, 2), 16),
+    g: parseInt(hex.substring(2, 4), 16),
+    b: parseInt(hex.substring(4, 6), 16)
+  };
+}
+function hexToHSL(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const rN = r / 255, gN = g / 255, bN = b / 255;
+  const max = Math.max(rN, gN, bN), min = Math.min(rN, gN, bN);
+  let h, s, l = (max + min) / 2;
+  if (max === min) { h = s = 0; }
+  else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case rN: h = ((gN - bN) / d + (gN < bN ? 6 : 0)); break;
+      case gN: h = ((bN - rN) / d + 2); break;
+      case bN: h = ((rN - gN) / d + 4); break;
+    }
+    h /= 6;
+  }
+  return { h: h * 360, s: s * 100, l: l * 100 };
+}
+function hslToHex(h, s, l) {
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12;
+  const a = s * Math.min(l, 1 - l);
+  const f = n => {
+    const col = l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return Math.round(col * 255).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+function isValidHex(str) { return /^#?[0-9A-Fa-f]{6}$/.test(str); }
+function normalizeHex(str) {
+  if (!str) return null;
+  str = str.trim().toUpperCase();
+  if (!str.startsWith('#')) str = '#' + str;
+  return isValidHex(str) ? str : null;
+}
+function deriveThemeFromHex(accentHex) {
+  const hsl = hexToHSL(accentHex);
+  const rgb = hexToRgb(accentHex);
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  return {
+    titleColor: accentHex,
+    frame1Bg: '#ffffff',
+    frame1Border: hslToHex(hsl.h, clamp(hsl.s * 0.75, 20, 90), clamp(88, 80, 93)),
+    frame1ShadowRgba: `${rgb.r},${rgb.g},${rgb.b}`,
+    frame1Divider: hslToHex(hsl.h, clamp(hsl.s * 0.7, 20, 85), clamp(78, 70, 83)),
+    frame1Heading: hslToHex(hsl.h, hsl.s, clamp(hsl.l - 8, 20, 45)),
+    frame2Bg: hslToHex(hsl.h, clamp(hsl.s * 0.35, 10, 60), clamp(94, 92, 97)),
+    frame2Border: hslToHex(hsl.h, clamp(hsl.s * 0.7, 20, 85), clamp(86, 78, 90)),
+    frame2Heading: hslToHex(hsl.h, hsl.s, clamp(hsl.l - 3, 25, 50)),
+    rewardHeading: accentHex,
+    hashtagBg: '#ffffff',
+    hashtagBorder: accentHex,
+    hashtagStrong: hslToHex(hsl.h, hsl.s, clamp(hsl.l - 8, 20, 45)),
+    footnote: '#8d6e63'
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// THEMES (10 presets)
+// ═══════════════════════════════════════════════════════════
+const THEME_PRESETS = [
+  // ─── Konvy CI ───
+  { key: 'pink',      label: 'Pink',    hex: '#F72D74', preview: 'linear-gradient(135deg,#ff6fa3,#f72d74)' },
+  { key: 'purple',    label: 'Purple',  hex: '#A557F4', preview: 'linear-gradient(135deg,#c994ff,#a557f4)' },
+  { key: 'blue',      label: 'Blue',    hex: '#55E5FC', preview: 'linear-gradient(135deg,#a0f0ff,#55e5fc)' },
+  { key: 'green',     label: 'Green',   hex: '#29D494', preview: 'linear-gradient(135deg,#6ee7b8,#29d494)' },
+  { key: 'yellow',    label: 'Yellow',  hex: '#FFE01C', preview: 'linear-gradient(135deg,#fff176,#ffe01c)' },
+  // ─── Warm / Beauty ───
+  { key: 'coral',     label: 'Coral',   hex: '#FF6B6B', preview: 'linear-gradient(135deg,#ff9a9a,#ff6b6b)' },
+  { key: 'peach',     label: 'Peach',   hex: '#FF9E7D', preview: 'linear-gradient(135deg,#ffc5a8,#ff9e7d)' },
+  { key: 'rose',      label: 'Rose',    hex: '#E91E63', preview: 'linear-gradient(135deg,#f48fb1,#e91e63)' },
+  { key: 'burgundy',  label: 'Wine',    hex: '#880E4F', preview: 'linear-gradient(135deg,#c2185b,#880e4f)' },
+  { key: 'gold',      label: 'Gold',    hex: '#D4A017', preview: 'linear-gradient(135deg,#f9ca24,#d4a017)' },
+  // ─── Cool / Fresh ───
+  { key: 'mint',      label: 'Mint',    hex: '#4FD1C5', preview: 'linear-gradient(135deg,#a0e8e0,#4fd1c5)' },
+  { key: 'teal',      label: 'Teal',    hex: '#00897B', preview: 'linear-gradient(135deg,#4db6ac,#00897b)' },
+  { key: 'sky',       label: 'Sky',     hex: '#1E88E5', preview: 'linear-gradient(135deg,#64b5f6,#1e88e5)' },
+  { key: 'lavender',  label: 'Lavender',hex: '#9575CD', preview: 'linear-gradient(135deg,#b39ddb,#9575cd)' },
+  { key: 'navy',      label: 'Navy',    hex: '#1A237E', preview: 'linear-gradient(135deg,#3f51b5,#1a237e)' },
+  // ─── Neutral / Bold ───
+  { key: 'charcoal',  label: 'Mono',    hex: '#2C2C2C', preview: 'linear-gradient(135deg,#5d5d5d,#2c2c2c)' },
+  { key: 'brown',     label: 'Cocoa',   hex: '#795548', preview: 'linear-gradient(135deg,#a1887f,#795548)' },
+  { key: 'orange',    label: 'Orange',  hex: '#FF6F00', preview: 'linear-gradient(135deg,#ffa726,#ff6f00)' },
+  { key: 'red',       label: 'Red',     hex: '#E53935', preview: 'linear-gradient(135deg,#ef5350,#e53935)' },
+  { key: 'olive',     label: 'Olive',   hex: '#689F38', preview: 'linear-gradient(135deg,#9ccc65,#689f38)' }
+];
+
+const ROLE_APPLIER = {
+  'title': (el, t) => { el.style.color = t.titleColor; },
+  'frame1': (el, t) => {
+    el.style.backgroundColor = t.frame1Bg;
+    el.style.borderColor = t.frame1Border;
+    el.style.boxShadow = `0 2px 8px rgba(${t.frame1ShadowRgba}, 0.1)`;
+  },
+  'frame1-divider': (el, t) => { el.style.borderBottomColor = t.frame1Divider; },
+  'frame1-heading': (el, t) => { el.style.color = t.frame1Heading; },
+  'frame2': (el, t) => {
+    el.style.backgroundColor = t.frame2Bg;
+    el.style.borderColor = t.frame2Border;
+  },
+  'frame2-heading': (el, t) => { el.style.color = t.frame2Heading; },
+  'reward-heading': (el, t) => { el.style.color = t.rewardHeading; },
+  'hashtag': (el, t) => {
+    el.style.backgroundColor = t.hashtagBg;
+    el.style.borderLeftColor = t.hashtagBorder;
+  },
+  'hashtag-strong': (el, t) => { el.style.color = t.hashtagStrong; },
+  'footnote': (el, t) => { el.style.color = t.footnote; }
+};
+
+// ═══════════════════════════════════════════════════════════
+// TEXT COLORS
+// ═══════════════════════════════════════════════════════════
+const TEXT_COLORS = [
+  '#F72D74', '#A557F4', '#55E5FC', '#29D494', '#FFE01C', '#1a1625', '#ffffff', '#e53935',
+  '#ef6c00', '#f9a825', '#43a047', '#00897b', '#1e88e5', '#5e35b1', '#d81b60', '#546e7a'
+];
+
+// ═══════════════════════════════════════════════════════════
+// EMOJIS + SYMBOLS (7 categories)
+// ═══════════════════════════════════════════════════════════
+const EMOJIS = {
+  'Popular':   ['✨','✅','⭐','🌟','💫','🎉','🎁','🏆','🔥','💯','💡','📌','🎯','⚡','❤️','💖','💝','💕','👍','🙌','👏','💪','🎊','🌈','☀️','🌙','⚠️','❗','💥','🧡','💛','💚','💙','💜','🤍','🖤'],
+  'Beauty':    ['💄','💅','💋','👜','👠','👗','🌸','🌺','🌹','👑','💍','💎','🧴','🧼','🪞','👸','💆','💆‍♀️','🧖‍♀️','🤳','🌷','🥀','💐','🌻','🌼','👓','🕶️','🎀','👒','🌿','👚','👛','👝','🛍️','🧖'],
+  'Wellness':  ['💪','🏋️','🧘','🏃','🏃‍♀️','🚴','🧘‍♀️','🧗','⚽','🏀','🎾','🏊','🤸','🥊','⛹️','♨️','🏖️','🌊','🏝️','⛱️','🧊','💧','🫧','🍵','🥗','🥙','🍹','☀️','🌴','🥥','🏐','🏸','🏓','⛳','🥋'],
+  'Lifestyle': ['💼','💻','📱','📊','📈','⏰','✍️','📝','📚','📖','🖊️','📎','🖥️','⌨️','📅','🗂️','📋','🎀','🎁','🎈','📢','🔔','🔑','💳','💰','💵','🛒','🛍️','🎭','🎨','🖼️','✂️','📐','📏','🧮'],
+  'Food':      ['🍔','🍕','🍣','🍜','🍱','🍛','🥗','🥙','🍰','🍩','🧁','🍪','🍎','🍓','🥭','🍑','🍇','🍊','🍍','🍌','🥑','🥥','☕','🍵','🍹','🍺','🧃','🍦','🥛','🍯','🍲','🍝','🥘','🍚','🍙'],
+  'Nature':    ['🌸','🌺','🌻','🌷','🌹','🌼','🍀','🌿','🌱','🌾','🍃','🌳','🌲','🌴','🌵','🌊','🌅','🌄','🌠','🌙','☀️','⭐','🌟','⚡','🔥','💧','🌈','❄️','☁️','🌤️','🌦️','🌧️','⛅','🌬️','🌋'],
+  'Symbols':   ['✿','❀','❁','✾','❃','❋','✽','❂','❄','❅','❆','✦','✧','✩','✪','✫','✬','✭','✮','✯','✰','★','☆','✩','❖','♥','♡','❤','❥','❦','❧','✓','✔','✗','✘','❝','❞','→','←','↑','↓','➜','➟','➤','➥','✦','❂','❖']
+};
+
+let currentEmojiTab = 'Popular';
+
+// ═══════════════════════════════════════════════════════════
+// TEMPLATE HTML
+// ═══════════════════════════════════════════════════════════
+// Default template per language — each language has its own placeholder text
+const INITIAL_HTML_TH = `<p data-role="title" contenteditable="true" style="font-size:15px; margin-bottom:14px; color:#F72D74; text-align:center; line-height:1.6; font-weight:bold;">
+  ✨ หัวข้อแคมเปญ ✨<br>#แฮชแท็กแคมเปญ
+</p>
+
+<div data-role="frame1" style="margin-bottom:14px; background-color:#ffffff; padding:14px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(247,45,116,0.1);">
+
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #fab6d0;">
+    <span style="font-size:17px; margin-right:8px;">💡</span>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#c2185b; font-size:15px;">แนวทางการสร้างสรรค์คอนเทนต์</strong>
+  </div>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>หัวข้อที่ 1</strong><br>
+    • คำอธิบายหัวข้อ คลิกเพื่อแก้ไข
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>หัวข้อที่ 2</strong><br>
+    • คำอธิบายหัวข้อ คลิกเพื่อแก้ไข
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>หัวข้อที่ 3</strong><br>
+    • คำอธิบายหัวข้อ คลิกเพื่อแก้ไข
+  </p>
+</div>
+
+<div data-role="frame2" style="margin-bottom:14px; background-color:#fff5f8; padding:14px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+
+  <div style="display:flex; align-items:center; margin-bottom:8px;">
+    <span style="font-size:17px; margin-right:8px;">✅</span>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#c2185b; font-size:15px;">กติกาและเงื่อนไขการร่วมสนุก</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:13px; line-height:1.7; margin:8px 0; color:#5d4037;">
+    1. <strong>โพสต์รูปภาพ:</strong> รายละเอียดกติกา<br>
+    2. <strong>โพสต์วิดีโอ:</strong> รายละเอียดกติกา<br>
+    3. <strong>เงื่อนไขเนื้อหา:</strong> รายละเอียดกติกา<br>
+    4. <strong>การติดแฮชแท็ก:</strong> รายละเอียดกติกา
+  </p>
+
+  <div data-role="hashtag" contenteditable="true" style="margin-top:12px; padding:10px 12px; background-color:#ffffff; border-left:4px solid #F72D74; border-radius:10px; font-size:14px; color:#5d4037;">
+    💡 ติดแฮชแท็ก <strong data-role="hashtag-strong" style="color:#c2185b;">#แฮชแท็กแคมเปญ</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; margin:14px 0 8px;">
+    <span style="font-size:17px; margin-right:8px;">🎁</span>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#F72D74; font-size:15px;">รางวัลกิจกรรม</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:13px; line-height:1.7; margin:8px 0; color:#5d4037;">
+    <strong>1. รางวัลการเข้าร่วม</strong><br>
+    • รายละเอียดรางวัล<br><br>
+
+    <strong>2. รางวัลพิเศษ</strong><br>
+    • รายละเอียดรางวัล
+  </p>
+
+  <p data-role="footnote" contenteditable="true" style="font-size:12px; line-height:1.6; margin:10px 0 0; color:#8d6e63;">
+    *เงื่อนไขเป็นไปตามที่บริษัทฯ กำหนด การตัดสินของทีมงานถือเป็นที่สิ้นสุด
+  </p>
+
+</div>`;
+
+const INITIAL_HTML_EN = `<p data-role="title" contenteditable="true" style="font-size:15px; margin-bottom:14px; color:#F72D74; text-align:center; line-height:1.6; font-weight:bold;">
+  ✨ Campaign Title ✨<br>#CampaignHashtag
+</p>
+
+<div data-role="frame1" style="margin-bottom:14px; background-color:#ffffff; padding:14px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(247,45,116,0.1);">
+
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #fab6d0;">
+    <span style="font-size:17px; margin-right:8px;">💡</span>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#c2185b; font-size:15px;">Content Guidelines</strong>
+  </div>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>Topic 1</strong><br>
+    • Topic description — click to edit
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>Topic 2</strong><br>
+    • Topic description — click to edit
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>Topic 3</strong><br>
+    • Topic description — click to edit
+  </p>
+</div>
+
+<div data-role="frame2" style="margin-bottom:14px; background-color:#fff5f8; padding:14px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+
+  <div style="display:flex; align-items:center; margin-bottom:8px;">
+    <span style="font-size:17px; margin-right:8px;">✅</span>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#c2185b; font-size:15px;">Rules & Conditions</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:13px; line-height:1.7; margin:8px 0; color:#5d4037;">
+    1. <strong>Photo post:</strong> rule details<br>
+    2. <strong>Video post:</strong> rule details<br>
+    3. <strong>Content requirement:</strong> rule details<br>
+    4. <strong>Hashtag rule:</strong> rule details
+  </p>
+
+  <div data-role="hashtag" contenteditable="true" style="margin-top:12px; padding:10px 12px; background-color:#ffffff; border-left:4px solid #F72D74; border-radius:10px; font-size:14px; color:#5d4037;">
+    💡 Use hashtag <strong data-role="hashtag-strong" style="color:#c2185b;">#CampaignHashtag</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; margin:14px 0 8px;">
+    <span style="font-size:17px; margin-right:8px;">🎁</span>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#F72D74; font-size:15px;">Rewards</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:13px; line-height:1.7; margin:8px 0; color:#5d4037;">
+    <strong>1. Participation reward</strong><br>
+    • Reward details<br><br>
+
+    <strong>2. Special reward</strong><br>
+    • Reward details
+  </p>
+
+  <p data-role="footnote" contenteditable="true" style="font-size:12px; line-height:1.6; margin:10px 0 0; color:#8d6e63;">
+    *Terms and conditions apply. The company's decision is final.
+  </p>
+
+</div>`;
+
+const INITIAL_HTML_ZH = `<p data-role="title" contenteditable="true" style="font-size:15px; margin-bottom:14px; color:#F72D74; text-align:center; line-height:1.6; font-weight:bold;">
+  ✨ 活动标题 ✨<br>#活动话题标签
+</p>
+
+<div data-role="frame1" style="margin-bottom:14px; background-color:#ffffff; padding:14px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(247,45,116,0.1);">
+
+  <div data-role="frame1-divider" style="display:flex; align-items:center; margin-bottom:10px; padding-bottom:8px; border-bottom:1px dashed #fab6d0;">
+    <span style="font-size:17px; margin-right:8px;">💡</span>
+    <strong data-role="frame1-heading" contenteditable="true" style="color:#c2185b; font-size:15px;">内容创作指南</strong>
+  </div>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>主题一</strong><br>
+    • 主题描述 — 点击编辑
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>主题二</strong><br>
+    • 主题描述 — 点击编辑
+  </p>
+
+  <p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>主题三</strong><br>
+    • 主题描述 — 点击编辑
+  </p>
+</div>
+
+<div data-role="frame2" style="margin-bottom:14px; background-color:#fff5f8; padding:14px; border-radius:12px; border:1px solid #fde4ee; box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+
+  <div style="display:flex; align-items:center; margin-bottom:8px;">
+    <span style="font-size:17px; margin-right:8px;">✅</span>
+    <strong data-role="frame2-heading" contenteditable="true" style="color:#c2185b; font-size:15px;">活动规则与条件</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:13px; line-height:1.7; margin:8px 0; color:#5d4037;">
+    1. <strong>图片发布:</strong> 规则详情<br>
+    2. <strong>视频发布:</strong> 规则详情<br>
+    3. <strong>内容要求:</strong> 规则详情<br>
+    4. <strong>话题标签规则:</strong> 规则详情
+  </p>
+
+  <div data-role="hashtag" contenteditable="true" style="margin-top:12px; padding:10px 12px; background-color:#ffffff; border-left:4px solid #F72D74; border-radius:10px; font-size:14px; color:#5d4037;">
+    💡 使用话题标签 <strong data-role="hashtag-strong" style="color:#c2185b;">#活动话题标签</strong>
+  </div>
+
+  <div style="display:flex; align-items:center; margin:14px 0 8px;">
+    <span style="font-size:17px; margin-right:8px;">🎁</span>
+    <strong data-role="reward-heading" contenteditable="true" style="color:#F72D74; font-size:15px;">活动奖励</strong>
+  </div>
+
+  <p contenteditable="true" style="font-size:13px; line-height:1.7; margin:8px 0; color:#5d4037;">
+    <strong>1. 参与奖</strong><br>
+    • 奖励详情<br><br>
+
+    <strong>2. 特别奖</strong><br>
+    • 奖励详情
+  </p>
+
+  <p data-role="footnote" contenteditable="true" style="font-size:12px; line-height:1.6; margin:10px 0 0; color:#8d6e63;">
+    *条款与条件适用。本公司保留最终决定权。
+  </p>
+
+</div>`;
+
+const INITIAL_BY_LANG = { th: INITIAL_HTML_TH, en: INITIAL_HTML_EN, zh: INITIAL_HTML_ZH };
+// Legacy alias for existing code paths
+const INITIAL_HTML = INITIAL_HTML_TH;
+
+const NEW_GUIDELINE_HTML = `<p data-role="guideline" contenteditable="true" style="font-size:13px; margin:10px 0; line-height:1.6;">
+    ✨ <strong>หัวข้อใหม่</strong><br>
+    • คำอธิบายที่นี่ คลิกเพื่อแก้ไข
+  </p>`;
+
+// Marker used in saved working files so we can auto-detect on import
+const WORKING_FILE_MARKER = '<!-- KONVY_EDITOR_WORKING_FILE -->';
+const CONTENT_START = '<!-- EDITOR_CONTENT_START -->';
+const CONTENT_END = '<!-- EDITOR_CONTENT_END -->';
+
+// Per-language markers for multi-language working files
+const LANG_MARKERS = {
+  th: { start: '<!-- LANG_TH_START -->', end: '<!-- LANG_TH_END -->' },
+  en: { start: '<!-- LANG_EN_START -->', end: '<!-- LANG_EN_END -->' },
+  zh: { start: '<!-- LANG_ZH_START -->', end: '<!-- LANG_ZH_END -->' }
+};
+const LANG_LABELS = { th: 'Thai', en: 'English', zh: 'Chinese' };
+
+// ═══════════════════════════════════════════════════════════
+// DOM refs
+// ═══════════════════════════════════════════════════════════
+const templateEl = document.getElementById('template');
+const frameEl = document.getElementById('frame');
+const frameLabelEl = document.getElementById('frameLabel');
+const toastEl = document.getElementById('toast');
+const toastTextEl = document.getElementById('toastText');
+const fileDropdownEl = document.getElementById('fileDropdown');
+const sidebarEl = document.getElementById('sidebar');
+const sbBackdropEl = document.getElementById('sbBackdrop');
+const formatToolbarEl = document.getElementById('formatToolbar');
+const importInputEl = document.getElementById('importInput');
+
+let currentThemeHex = '#F72D74';
+let savedRange = null;
+
+// ─── Multi-language state ───
+let currentLang = 'th';
+const langContent = { th: null, en: null, zh: null };
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function getDateStr() {
+  const d = new Date();
+  return `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+}
+function getEditableHTML() {
+  // Preserves data-role + contenteditable for re-editing
+  return templateEl.innerHTML.replace(/<button class="row-delete"[^>]*>×<\/button>/g, '').trim();
+}
+
+function getCleanHTML() {
+  // Strips editor attrs — for publishing
+  const clone = templateEl.cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  clone.querySelectorAll('.row-delete').forEach(el => el.remove());
+  clone.querySelectorAll('.inserted-img').forEach(el => el.classList.remove('inserted-img'));
+
+  // Beautify: produce indented HTML with section comments (matches original style)
+  let out = '';
+  Array.from(clone.children).forEach((child, idx) => {
+    const role = child.dataset.role;
+    // Add section comments matching the original template style
+    if (role === 'title' && idx === 0) {
+      out += '<!-- Header -->\n';
+    } else if (role === 'frame1') {
+      out += '\n<!-- Section: Content Guidelines -->\n';
+    } else if (role === 'frame2') {
+      out += '\n<!-- Section: Rules + Rewards -->\n';
+    }
+    child.removeAttribute('data-role');
+    out += beautifyElement(child, 0) + '\n';
+  });
+
+  // Strip data-role from all nested elements after the section header logic
+  return out.trim();
+}
+
+// Convert a DOM element to indented HTML string
+function beautifyElement(el, indent) {
+  const pad = '  '.repeat(indent);
+  if (el.nodeType === 3) {
+    // Text node — collapse whitespace, preserve content
+    const text = el.textContent;
+    if (!text.trim()) return '';
+    return text.trim();
+  }
+  if (el.nodeType !== 1) return '';
+
+  // Strip data-role from nested elements
+  if (el.hasAttribute('data-role')) el.removeAttribute('data-role');
+
+  const tag = el.tagName.toLowerCase();
+  const voidTags = ['br', 'img', 'hr', 'input', 'meta', 'link'];
+  const inlineTags = ['span', 'strong', 'em', 'b', 'i', 'u', 'a', 'br', 'sub', 'sup', 'small', 'mark'];
+
+  // Build attributes string
+  let attrs = '';
+  Array.from(el.attributes).forEach(a => {
+    attrs += ` ${a.name}="${a.value.replace(/"/g, '&quot;')}"`;
+  });
+
+  if (voidTags.includes(tag)) {
+    return `${pad}<${tag}${attrs}>`;
+  }
+
+  // Determine if children are all inline/text — if so, render on one line
+  const children = Array.from(el.childNodes);
+  const allInline = children.every(c => {
+    if (c.nodeType === 3) return true;
+    if (c.nodeType === 1) return inlineTags.includes(c.tagName.toLowerCase());
+    return false;
+  });
+
+  if (allInline) {
+    // Render content inline (preserve internal HTML structure)
+    let inner = '';
+    children.forEach(c => {
+      if (c.nodeType === 3) {
+        inner += c.textContent;
+      } else if (c.nodeType === 1) {
+        inner += renderInlineElement(c);
+      }
+    });
+    // Trim each line, collapse multiple spaces but preserve <br> structure
+    inner = inner.replace(/\s+/g, ' ').trim();
+    return `${pad}<${tag}${attrs}>${inner}</${tag}>`;
+  }
+
+  // Block children — recurse with indent
+  let body = '';
+  children.forEach(c => {
+    if (c.nodeType === 3 && !c.textContent.trim()) return;
+    if (c.nodeType === 1) {
+      body += '\n' + beautifyElement(c, indent + 1);
+    } else if (c.nodeType === 3) {
+      body += '\n' + '  '.repeat(indent + 1) + c.textContent.trim();
+    }
+  });
+  return `${pad}<${tag}${attrs}>${body}\n${pad}</${tag}>`;
+}
+
+// Render inline element as compact HTML (used inside paragraphs)
+function renderInlineElement(el) {
+  if (el.nodeType === 3) return el.textContent;
+  if (el.nodeType !== 1) return '';
+  const tag = el.tagName.toLowerCase();
+  const voidTags = ['br', 'img', 'hr'];
+  let attrs = '';
+  Array.from(el.attributes).forEach(a => {
+    if (a.name === 'data-role') return;
+    attrs += ` ${a.name}="${a.value.replace(/"/g, '&quot;')}"`;
+  });
+  if (voidTags.includes(tag)) return `<${tag}${attrs}>`;
+  let inner = '';
+  el.childNodes.forEach(c => {
+    if (c.nodeType === 3) inner += c.textContent;
+    else if (c.nodeType === 1) inner += renderInlineElement(c);
+  });
+  return `<${tag}${attrs}>${inner}</${tag}>`;
+}
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Mount
+// ═══════════════════════════════════════════════════════════
+function mountTemplate(html) {
+  templateEl.innerHTML = html || INITIAL_HTML;
+  // Ensure contenteditable is set on all editable roles (for imported files)
+  templateEl.querySelectorAll('[data-role]').forEach(el => {
+    const role = el.dataset.role;
+    const editableRoles = ['title', 'frame1-heading', 'guideline', 'frame2-heading', 'hashtag', 'reward-heading', 'footnote'];
+    if (editableRoles.includes(role) && !el.hasAttribute('contenteditable')) {
+      el.setAttribute('contenteditable', 'true');
+    }
+  });
+  // Also ensure p/div inside frame2 (the rules/rewards text) stay editable
+  const frame2 = templateEl.querySelector('[data-role="frame2"]');
+  if (frame2) {
+    frame2.querySelectorAll('p, div').forEach(el => {
+      if (!el.hasAttribute('data-role') && el.tagName === 'P' && !el.hasAttribute('contenteditable')) {
+        // top-level p without role => text paragraph
+        const parent = el.parentElement;
+        if (parent === frame2) el.setAttribute('contenteditable', 'true');
+      }
+    });
+  }
+  attachGuidelineControls();
+}
+mountTemplate();
+
+function attachGuidelineControls() {
+  templateEl.querySelectorAll('[data-role="guideline"]').forEach(g => {
+    if (g.querySelector('.row-delete')) return;
+    // Make room for delete button on the right
+    g.style.paddingRight = '34px';
+
+    const btn = document.createElement('button');
+    btn.className = 'row-delete';
+    btn.innerHTML = '×';
+    btn.title = 'Delete this section';
+    btn.contentEditable = 'false';
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const guidelines = templateEl.querySelectorAll('[data-role="guideline"]');
+      if (guidelines.length <= 1) { showToast('Must have at least 1 section'); return; }
+      if (confirm('Delete this section?')) {
+        g.remove();
+        showToast('Section deleted');
+      }
+    });
+    g.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════════════════════
+function renderThemeChips() {
+  const ciGrid = document.getElementById('themeGridCI');
+  const extraGrid = document.getElementById('themeGridExtra');
+  ciGrid.innerHTML = '';
+  extraGrid.innerHTML = '';
+
+  THEME_PRESETS.forEach((p, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-chip' + (p.hex.toLowerCase() === currentThemeHex.toLowerCase() ? ' active' : '');
+    if (idx < 5) btn.classList.add('is-ci');
+    btn.innerHTML = `<div class="chip-inner" style="background:${p.preview};">${p.label}</div>`;
+    btn.title = `${p.label} · ${p.hex}`;
+    btn.addEventListener('click', () => applyThemeByHex(p.hex, p.label));
+    (idx < 5 ? ciGrid : extraGrid).appendChild(btn);
+  });
+}
+
+function applyThemeByHex(hex, label, silent) {
+  const norm = normalizeHex(hex);
+  if (!norm) { showToast('Invalid hex code', { error: true }); return; }
+  currentThemeHex = norm;
+  const theme = deriveThemeFromHex(norm);
+  templateEl.querySelectorAll('[data-role]').forEach(el => {
+    const role = el.dataset.role;
+    if (ROLE_APPLIER[role]) ROLE_APPLIER[role](el, theme);
+  });
+  // Sync UI
+  document.getElementById('themeHexInput').value = norm;
+  document.getElementById('themeColorInput').value = norm;
+  document.getElementById('themeHexSwatch').style.setProperty('--current-color', norm);
+  // Update preset active
+  document.querySelectorAll('.theme-chip').forEach(c => c.classList.remove('active'));
+  const idx = THEME_PRESETS.findIndex(p => p.hex.toLowerCase() === norm.toLowerCase());
+  if (idx !== -1) {
+    const gridId = idx < 5 ? 'themeGridCI' : 'themeGridExtra';
+    const localIdx = idx < 5 ? idx : idx - 5;
+    const grid = document.getElementById(gridId);
+    const chips = grid ? grid.querySelectorAll('.theme-chip') : [];
+    if (chips[localIdx]) chips[localIdx].classList.add('active');
+  }
+  if (!silent) showToast(label ? `${label} theme` : `Theme changed to ${norm}`);
+}
+
+function applyCustomTheme() {
+  const input = document.getElementById('themeHexInput').value;
+  const norm = normalizeHex(input);
+  if (!norm) { showToast('Invalid hex code (e.g. #F72D74)', { error: true }); return; }
+  applyThemeByHex(norm);
+}
+
+// Hex input ↔ color picker sync for theme
+document.getElementById('themeColorInput').addEventListener('input', (e) => {
+  const hex = e.target.value.toUpperCase();
+  document.getElementById('themeHexInput').value = hex;
+  document.getElementById('themeHexSwatch').style.setProperty('--current-color', hex);
+  applyThemeByHex(hex);
+});
+document.getElementById('themeHexInput').addEventListener('input', (e) => {
+  const norm = normalizeHex(e.target.value);
+  if (norm) {
+    document.getElementById('themeColorInput').value = norm;
+    document.getElementById('themeHexSwatch').style.setProperty('--current-color', norm);
+  }
+});
+document.getElementById('themeHexInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); applyCustomTheme(); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// TEXT COLOR
+// ═══════════════════════════════════════════════════════════
+function renderColorSwatches() {
+  const grid = document.getElementById('colorGrid');
+  grid.innerHTML = '';
+
+  const clearBtn = document.createElement('button');
+  clearBtn.className = 'color-swatch clear';
+  clearBtn.innerHTML = '🚫';
+  clearBtn.title = 'ล้างสี';
+  clearBtn.addEventListener('mousedown', (e) => e.preventDefault());
+  clearBtn.addEventListener('click', clearTextColor);
+  grid.appendChild(clearBtn);
+
+  TEXT_COLORS.forEach(color => {
+    const btn = document.createElement('button');
+    btn.className = 'color-swatch';
+    btn.style.background = color;
+    btn.title = color.toUpperCase();
+    btn.addEventListener('mousedown', (e) => e.preventDefault());
+    btn.addEventListener('click', () => {
+      document.getElementById('textHexInput').value = color.toUpperCase();
+      document.getElementById('textColorInput').value = color;
+      document.getElementById('textHexSwatch').style.setProperty('--current-color', color);
+      applyTextColor(color);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function applyTextColor(color) {
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('Please select text first');
+    return;
+  }
+  try {
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('foreColor', false, color);
+    showToast('Color applied');
+  } catch (e) { console.error(e); }
+}
+
+function applyCustomTextColor() {
+  const input = document.getElementById('textHexInput').value;
+  const norm = normalizeHex(input);
+  if (!norm) { showToast('Invalid hex code', { error: true }); return; }
+  applyTextColor(norm);
+}
+
+function clearTextColor() {
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('Please select text first');
+    return;
+  }
+  try {
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand('removeFormat', false, null);
+    showToast('Color cleared');
+  } catch (e) { console.error(e); }
+}
+
+// Sync text color UI
+document.getElementById('textColorInput').addEventListener('input', (e) => {
+  const hex = e.target.value.toUpperCase();
+  document.getElementById('textHexInput').value = hex;
+  document.getElementById('textHexSwatch').style.setProperty('--current-color', hex);
+  applyTextColor(hex);
+});
+document.getElementById('textHexInput').addEventListener('input', (e) => {
+  const norm = normalizeHex(e.target.value);
+  if (norm) {
+    document.getElementById('textColorInput').value = norm;
+    document.getElementById('textHexSwatch').style.setProperty('--current-color', norm);
+  }
+});
+document.getElementById('textHexInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); applyCustomTextColor(); }
+});
+document.getElementById('textHexCopy').addEventListener('click', () => {
+  const hex = document.getElementById('textHexInput').value.toUpperCase();
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = hex; ta.style.cssText = 'position:fixed; top:-1000px;';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    showToast(`${hex} copied`);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(hex).then(() => showToast(`${hex} copied`)).catch(fallback);
+  } else { fallback(); }
+});
+
+// ─── Eyedropper (native browser API, Chrome/Edge only) ───
+async function pickColorFromScreen(targetType) {
+  // targetType: 'theme' or 'text'
+  if (typeof window.EyeDropper !== 'function') {
+    showToast('Eyedropper not supported — try Chrome or Edge', { error: true, duration: 3500 });
+    return;
+  }
+  const btnId = targetType === 'theme' ? 'themeEyedropper' : 'textEyedropper';
+  const btn = document.getElementById(btnId);
+  btn.classList.add('eyedropper-active');
+  showToast('Click anywhere on screen to pick a color...', { loading: true });
+
+  try {
+    const eyeDropper = new window.EyeDropper();
+    const result = await eyeDropper.open();
+    const hex = result.sRGBHex.toUpperCase();
+    hideToast();
+
+    if (targetType === 'theme') {
+      document.getElementById('themeHexInput').value = hex;
+      document.getElementById('themeColorInput').value = hex;
+      applyThemeByHex(hex);
+    } else {
+      document.getElementById('textHexInput').value = hex;
+      document.getElementById('textColorInput').value = hex;
+      document.getElementById('textHexSwatch').style.setProperty('--current-color', hex);
+      // Apply to current selection if any
+      restoreSelection();
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+        applyTextColor(hex);
+      } else {
+        showToast(`Picked ${hex} — select text and click Apply`);
+      }
+    }
+  } catch (err) {
+    // User cancelled (Esc) or error
+    hideToast();
+    if (err.message && !err.message.toLowerCase().includes('aborted')) {
+      console.error(err);
+    }
+  } finally {
+    btn.classList.remove('eyedropper-active');
+  }
+}
+
+document.getElementById('themeEyedropper').addEventListener('click', () => pickColorFromScreen('theme'));
+document.getElementById('textEyedropper').addEventListener('click', () => pickColorFromScreen('text'));
+
+// ═══════════════════════════════════════════════════════════
+// EMOJI PICKER
+// ═══════════════════════════════════════════════════════════
+function renderEmojiPicker() {
+  const tabsEl = document.getElementById('emojiTabs');
+  const gridEl = document.getElementById('emojiGrid');
+  tabsEl.innerHTML = '';
+  Object.keys(EMOJIS).forEach(cat => {
+    const t = document.createElement('button');
+    t.className = 'emoji-tab' + (cat === currentEmojiTab ? ' active' : '');
+    t.textContent = cat;
+    t.addEventListener('click', () => { currentEmojiTab = cat; renderEmojiPicker(); });
+    tabsEl.appendChild(t);
+  });
+  gridEl.innerHTML = '';
+  EMOJIS[currentEmojiTab].forEach(em => {
+    const b = document.createElement('button');
+    b.className = 'emoji-btn';
+    b.textContent = em;
+    b.title = 'Click to add';
+    b.addEventListener('mousedown', (e) => e.preventDefault());
+    b.addEventListener('click', () => insertEmoji(em));
+    gridEl.appendChild(b);
+  });
+}
+
+function insertEmoji(emoji) {
+  restoreSelection();
+  const sel = window.getSelection();
+  const hasRange = sel && sel.rangeCount > 0 && templateEl.contains(sel.getRangeAt(0).commonAncestorContainer);
+  if (hasRange) {
+    document.execCommand('insertText', false, emoji);
+    const newSel = window.getSelection();
+    if (newSel.rangeCount > 0) savedRange = newSel.getRangeAt(0).cloneRange();
+  } else {
+    const fallback = () => showToast(`${emoji} (click in template text first)`);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(emoji)
+        .then(() => showToast(`${emoji} copied — paste anywhere`))
+        .catch(fallback);
+    } else { fallback(); }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SELECTION TRACKING
+// ═══════════════════════════════════════════════════════════
+function restoreSelection() {
+  if (savedRange) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    try { sel.addRange(savedRange); } catch (e) {}
+  }
+}
+document.addEventListener('selectionchange', () => {
+  const sel = window.getSelection();
+  if (sel.rangeCount === 0) return;
+  const r = sel.getRangeAt(0);
+  if (templateEl.contains(r.commonAncestorContainer)) {
+    savedRange = r.cloneRange();
+    updateFormatToolbar();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FLOATING FORMAT TOOLBAR
+// ═══════════════════════════════════════════════════════════
+function updateFormatToolbar() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) { hideFormatToolbar(); return; }
+  const range = sel.getRangeAt(0);
+  if (!templateEl.contains(range.commonAncestorContainer)) { hideFormatToolbar(); return; }
+  if (range.collapsed) {
+    // Still show if focus is inside template (for paragraph-level controls)
+    // but keep hidden to avoid clutter. Only show on actual selection.
+    hideFormatToolbar();
+    return;
+  }
+  const rect = range.getBoundingClientRect();
+  if (rect.width === 0 && rect.height === 0) { hideFormatToolbar(); return; }
+
+  formatToolbarEl.classList.add('show');
+  const tbRect = formatToolbarEl.getBoundingClientRect();
+  let top = rect.top + window.scrollY - tbRect.height - 10;
+  let left = rect.left + window.scrollX + rect.width / 2 - tbRect.width / 2;
+  // Clamp to viewport
+  if (top < window.scrollY + 70) top = rect.bottom + window.scrollY + 10;
+  if (left < 10) left = 10;
+  if (left + tbRect.width > window.innerWidth - 10) left = window.innerWidth - tbRect.width - 10;
+  formatToolbarEl.style.top = top + 'px';
+  formatToolbarEl.style.left = left + 'px';
+
+  // Update active states
+  ['bold','italic','underline','strikeThrough'].forEach(cmd => {
+    const btn = formatToolbarEl.querySelector(`[data-cmd="${cmd}"]`);
+    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
+  ['justifyLeft','justifyCenter','justifyRight'].forEach(cmd => {
+    const btn = formatToolbarEl.querySelector(`[data-cmd="${cmd}"]`);
+    if (btn) btn.classList.toggle('active', document.queryCommandState(cmd));
+  });
+
+  // Update line-height / letter-spacing from current paragraph
+  const para = getCurrentBlock();
+  if (para) {
+    const cs = window.getComputedStyle(para);
+    const fs = parseFloat(cs.fontSize) || 11;
+    const lh = parseFloat(cs.lineHeight);
+    const ls = parseFloat(cs.letterSpacing);
+    if (!isNaN(lh)) document.getElementById('ftLineHeight').value = Math.round((lh / fs) * 10);
+    if (!isNaN(ls)) document.getElementById('ftLetterSpacing').value = ls;
+  }
+}
+
+function hideFormatToolbar() {
+  formatToolbarEl.classList.remove('show');
+}
+
+function getCurrentBlock() {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  let node = sel.getRangeAt(0).commonAncestorContainer;
+  if (node.nodeType === 3) node = node.parentNode;
+  while (node && node !== templateEl) {
+    const d = window.getComputedStyle(node).display;
+    if (d === 'block' || d === 'flex') return node;
+    node = node.parentNode;
+  }
+  return null;
+}
+
+// Format commands
+formatToolbarEl.querySelectorAll('[data-cmd]').forEach(btn => {
+  btn.addEventListener('mousedown', (e) => e.preventDefault());
+  btn.addEventListener('click', () => {
+    restoreSelection();
+    document.execCommand('styleWithCSS', false, true);
+    document.execCommand(btn.dataset.cmd, false, null);
+    updateFormatToolbar();
+  });
+});
+
+// Font size — wrap selection directly with span[font-size]
+document.getElementById('ftSize').addEventListener('change', (e) => {
+  const px = e.target.value;
+  if (!px) return;
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    showToast('Please select text first');
+    e.target.value = '';
+    return;
+  }
+  if (!templateEl.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+    showToast('Please select text first');
+    e.target.value = '';
+    return;
+  }
+
+  applyFontSizeToSelection(px + 'px');
+  e.target.value = '';
+
+  // Re-save selection so toolbar stays positioned correctly
+  const newSel = window.getSelection();
+  if (newSel.rangeCount > 0 && templateEl.contains(newSel.getRangeAt(0).commonAncestorContainer)) {
+    savedRange = newSel.getRangeAt(0).cloneRange();
+  }
+  updateFormatToolbar();
+});
+
+function applyFontSizeToSelection(sizeValue) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return;
+  const range = sel.getRangeAt(0);
+  if (range.collapsed) return;
+
+  // Step 1: Strip existing font-size from any span fully inside the selection,
+  // so we don't end up with nested font-sizes (which makes text snowball).
+  const ancestor = range.commonAncestorContainer;
+  const root = ancestor.nodeType === 1 ? ancestor : ancestor.parentNode;
+  if (root && root.querySelectorAll) {
+    root.querySelectorAll('span[style*="font-size"]').forEach(span => {
+      // Only clean spans that are inside the current selection
+      if (range.intersectsNode && range.intersectsNode(span)) {
+        span.style.fontSize = '';
+        if (!span.getAttribute('style') || span.getAttribute('style').trim() === '') {
+          // Unwrap empty span
+          const parent = span.parentNode;
+          while (span.firstChild) parent.insertBefore(span.firstChild, span);
+          parent.removeChild(span);
+        }
+      }
+    });
+  }
+
+  // Reselect — DOM may have changed after cleanup
+  const newRange = document.createRange();
+  // Try to keep selection on same range if possible
+  try {
+    if (sel.rangeCount > 0 && !sel.getRangeAt(0).collapsed) {
+      // Selection survived cleanup
+    } else {
+      return;
+    }
+  } catch (e) { return; }
+
+  // Step 2: Wrap current selection in a fresh span
+  const wrapRange = sel.getRangeAt(0);
+  if (wrapRange.collapsed) return;
+
+  try {
+    const span = document.createElement('span');
+    span.style.fontSize = sizeValue;
+    // extractContents pulls the selected DOM out, then we insert the span
+    const contents = wrapRange.extractContents();
+    span.appendChild(contents);
+    wrapRange.insertNode(span);
+
+    // Re-select the new span content
+    const after = document.createRange();
+    after.selectNodeContents(span);
+    sel.removeAllRanges();
+    sel.addRange(after);
+  } catch (err) {
+    console.error('Font size apply failed:', err);
+  }
+}
+
+// Color picker in toolbar
+document.getElementById('ftColor').addEventListener('input', (e) => {
+  const hex = e.target.value;
+  document.getElementById('ftColorSwatch').style.background = hex;
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return;
+  document.execCommand('styleWithCSS', false, true);
+  document.execCommand('foreColor', false, hex);
+});
+
+// Line-height slider (applies to parent block)
+document.getElementById('ftLineHeight').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value) / 10;
+  const block = getCurrentBlock();
+  if (block) block.style.lineHeight = val;
+});
+
+// Letter-spacing slider
+document.getElementById('ftLetterSpacing').addEventListener('input', (e) => {
+  const val = parseFloat(e.target.value);
+  const block = getCurrentBlock();
+  if (block) block.style.letterSpacing = val + 'px';
+});
+
+// Prevent toolbar from killing selection
+formatToolbarEl.addEventListener('mousedown', (e) => {
+  if (!['INPUT', 'SELECT'].includes(e.target.tagName)) e.preventDefault();
+});
+
+// Hide toolbar on scroll
+window.addEventListener('scroll', hideFormatToolbar, true);
+document.addEventListener('click', (e) => {
+  if (!formatToolbarEl.contains(e.target) && !templateEl.contains(e.target)) {
+    hideFormatToolbar();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// ADD GUIDELINE
+// ═══════════════════════════════════════════════════════════
+function addGuideline() {
+  const frame1 = templateEl.querySelector('[data-role="frame1"]');
+  if (!frame1) return;
+  const tmp = document.createElement('div');
+  tmp.innerHTML = NEW_GUIDELINE_HTML;
+  const newP = tmp.firstElementChild;
+  frame1.appendChild(newP);
+  attachGuidelineControls();
+  newP.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  showToast('New section added');
+}
+
+// ═══════════════════════════════════════════════════════════
+// SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════════
+function toggleSidebar() {
+  sidebarEl.classList.toggle('open');
+  sbBackdropEl.classList.toggle('show');
+}
+function closeSidebar() {
+  sidebarEl.classList.remove('open');
+  sbBackdropEl.classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEVICE SWITCH
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.device-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.device-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    frameEl.style.maxWidth = btn.dataset.width + 'px';
+    const labels = { mobile: 'Mobile · 390px', tablet: 'iPad · 768px', desktop: 'Desktop · 1024px' };
+    frameLabelEl.textContent = labels[btn.dataset.device];
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// LANGUAGE SWITCH
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const lang = btn.dataset.lang;
+    if (lang === currentLang) return;
+    switchLanguage(lang);
+  });
+});
+
+function switchLanguage(newLang) {
+  // Save current language's content
+  langContent[currentLang] = getEditableHTML();
+
+  // Switch active state
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  const activeBtn = document.querySelector(`.lang-btn[data-lang="${newLang}"]`);
+  if (activeBtn) activeBtn.classList.add('active');
+
+  currentLang = newLang;
+
+  // Load new language's content (or initial template if first visit)
+  const htmlToLoad = langContent[newLang] || INITIAL_BY_LANG[newLang];
+  mountTemplate(htmlToLoad);
+  applyThemeByHex(currentThemeHex, null, true);
+
+  showToast(`${LANG_LABELS[newLang]} version`);
+}
+
+// ═══════════════════════════════════════════════════════════
+// PASTE & ENTER
+// ═══════════════════════════════════════════════════════════
+templateEl.addEventListener('paste', (e) => {
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
+templateEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.execCommand('insertLineBreak');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// FILE MENU
+// ═══════════════════════════════════════════════════════════
+function toggleFileMenu(ev) {
+  ev && ev.stopPropagation();
+  fileDropdownEl.classList.toggle('open');
+}
+document.addEventListener('click', (e) => {
+  if (!fileDropdownEl.contains(e.target)) fileDropdownEl.classList.remove('open');
+});
+
+// ═══════════════════════════════════════════════════════════
+// IMPORT WORKING FILE
+// ═══════════════════════════════════════════════════════════
+function triggerImport() {
+  fileDropdownEl.classList.remove('open');
+  importInputEl.click();
+}
+importInputEl.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const text = ev.target.result;
+    let content = null;
+    let langBundleFound = false;
+
+    // ─── Try multi-language bundle first ───
+    const langBundleStart = text.indexOf('<!-- LANGUAGE_BUNDLE_START -->');
+    const langBundleEnd = text.indexOf('<!-- LANGUAGE_BUNDLE_END -->');
+    if (langBundleStart !== -1 && langBundleEnd !== -1) {
+      const bundleText = text.substring(langBundleStart, langBundleEnd);
+      let found = 0;
+      ['th', 'en', 'zh'].forEach(l => {
+        const m = LANG_MARKERS[l];
+        const sIdx = bundleText.indexOf(m.start);
+        const eIdx = bundleText.indexOf(m.end);
+        if (sIdx !== -1 && eIdx !== -1 && eIdx > sIdx) {
+          langContent[l] = bundleText.substring(sIdx + m.start.length, eIdx).trim();
+          found++;
+        }
+      });
+      if (found > 0) langBundleFound = true;
+    }
+
+    // ─── Fallback: single-language format ───
+    const startIdx = text.indexOf(CONTENT_START);
+    const endIdx = text.indexOf(CONTENT_END);
+    if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+      content = text.substring(startIdx + CONTENT_START.length, endIdx).trim();
+    } else if (!langBundleFound) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      const container = doc.querySelector('#template');
+      if (container) {
+        content = container.innerHTML;
+      } else {
+        const rolesFound = doc.querySelectorAll('[data-role]');
+        if (rolesFound.length > 0) {
+          content = doc.body.innerHTML;
+        } else {
+          showToast('No editor data found in this file', { error: true });
+          return;
+        }
+      }
+    }
+
+    // Determine which language to show: from meta tag, or active, or th
+    let targetLang = currentLang;
+    const metaMatch = text.match(/<meta\s+name=["']konvy-editor-lang["']\s+content=["'](\w+)["']/);
+    if (metaMatch && LANG_MARKERS[metaMatch[1]]) targetLang = metaMatch[1];
+
+    if (confirm('Import this file? Current content will be replaced.')) {
+      if (langBundleFound) {
+        // Multi-language bundle: switch to target lang and load it
+        currentLang = targetLang;
+        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.querySelector(`.lang-btn[data-lang="${targetLang}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+        mountTemplate(langContent[targetLang] || content || INITIAL_BY_LANG[targetLang]);
+        detectAndSyncTheme();
+        const count = Object.values(langContent).filter(c => c).length;
+        showToast(`File imported ✓ (${count} language${count > 1 ? 's' : ''})`);
+      } else if (content) {
+        // Single-language file: load into current language slot
+        langContent[currentLang] = content;
+        mountTemplate(content);
+        detectAndSyncTheme();
+        showToast('File imported ✓');
+      }
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function detectAndSyncTheme() {
+  // Try to read title color from imported file and sync UI
+  const title = templateEl.querySelector('[data-role="title"]');
+  if (title) {
+    const color = title.style.color;
+    if (color) {
+      // Convert rgb(...) to hex if needed
+      const rgbMatch = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+      let hex = null;
+      if (rgbMatch) {
+        hex = '#' + [1,2,3].map(i => parseInt(rgbMatch[i]).toString(16).padStart(2, '0')).join('').toUpperCase();
+      } else if (color.startsWith('#')) {
+        hex = color.toUpperCase();
+      }
+      if (hex) {
+        currentThemeHex = hex;
+        document.getElementById('themeHexInput').value = hex;
+        document.getElementById('themeColorInput').value = hex;
+        document.getElementById('themeHexSwatch').style.setProperty('--current-color', hex);
+      }
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// SAVE / COPY
+// ═══════════════════════════════════════════════════════════
+function copyHTML() {
+  const html = getCleanHTML();
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = html; ta.style.cssText = 'position:fixed; top:-1000px;';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+    showToast('HTML copied');
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(html).then(() => showToast('HTML copied')).catch(fallback);
+  } else { fallback(); }
+  fileDropdownEl.classList.remove('open');
+}
+
+function saveWorkingFile() {
+  // Capture current editor state into the active language slot
+  langContent[currentLang] = getEditableHTML();
+
+  // Build bundle: include whatever has been created (use initial template for untouched slots)
+  const bundle = ['th', 'en', 'zh'].map(l => {
+    const html = langContent[l] || INITIAL_BY_LANG[l];
+    const m = LANG_MARKERS[l];
+    return `${m.start}\n${html}\n${m.end}`;
+  }).join('\n\n');
+
+  // Preview = current active language
+  const previewHTML = getCleanHTML();
+
+  const fullDoc = `<!DOCTYPE html>
+<html lang="${currentLang === 'zh' ? 'zh' : currentLang}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${CAMPAIGN_NAME} — Working File</title>
+${WORKING_FILE_MARKER}
+<meta name="konvy-editor-lang" content="${currentLang}">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: Roboto, Tahoma, -apple-system, 'Microsoft YaHei', sans-serif;
+    color: #000;
+    background: #F5F6F7;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 14px;
+  }
+  .editor-notice { background: #fff3cd; border: 1px solid #ffe69c; padding: 10px 14px; border-radius: 8px; font-size: 12px; color: #664d03; margin-bottom: 16px; }
+  .editor-notice strong { color: #F72D74; }
+</style>
+</head>
+<body>
+<div class="editor-notice">
+  📝 <strong>Konvy Editor Working File</strong><br>
+  This file contains all language versions (TH/EN/ZH). Open this file, then click "Import file" in the Editor to continue editing.
+</div>
+<div id="template">
+${CONTENT_START}
+${previewHTML}
+${CONTENT_END}
+</div>
+<!-- LANGUAGE_BUNDLE_START -->
+<script type="application/x-konvy-lang-bundle">
+${bundle}
+<\/script>
+<!-- LANGUAGE_BUNDLE_END -->
+</body>
+</html>`;
+  const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
+  downloadBlob(blob, `${FILE_PREFIX}-working-${getDateStr()}.html`);
+  showToast('Working file saved ✓');
+  fileDropdownEl.classList.remove('open');
+}
+
+function saveHTML() {
+  const bodyHTML = getCleanHTML();
+  const fullDoc = `<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${CAMPAIGN_NAME}</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: Roboto, Tahoma, -apple-system, 'Microsoft YaHei', sans-serif;
+    color: #000;
+    background: #F5F6F7;
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 14px;
+  }
+</style>
+</head>
+<body>
+<!-- ↓↓↓ คัดลอกเฉพาะส่วนนี้ไปวางบนเว็บ ↓↓↓ -->
+${bodyHTML}
+<!-- ↑↑↑ สิ้นสุดเนื้อหา ↑↑↑ -->
+</body>
+</html>`;
+  const blob = new Blob([fullDoc], { type: 'text/html;charset=utf-8' });
+  downloadBlob(blob, `${FILE_PREFIX}-${getDateStr()}.html`);
+  showToast('HTML saved');
+  fileDropdownEl.classList.remove('open');
+}
+
+async function savePDF() {
+  fileDropdownEl.classList.remove('open');
+  if (typeof html2canvas === 'undefined' || typeof window.jspdf === 'undefined') {
+    showToast('Loading libraries... please try again');
+    return;
+  }
+  showToast('Generating PDF...', { loading: true });
+
+  const RENDER_WIDTH = 420;
+  const renderContainer = document.createElement('div');
+  renderContainer.style.cssText = `
+    position: fixed; left: -99999px; top: 0;
+    width: ${RENDER_WIDTH}px; padding: 20px;
+    background: #ffffff;
+    font-family: 'IBM Plex Sans Thai', -apple-system, sans-serif;
+  `;
+  const clone = templateEl.cloneNode(true);
+  clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+  clone.querySelectorAll('.row-delete').forEach(el => el.remove());
+  renderContainer.appendChild(clone);
+  document.body.appendChild(renderContainer);
+
+  await new Promise(r => setTimeout(r, 300));
+  if (document.fonts && document.fonts.ready) { try { await document.fonts.ready; } catch (e) {} }
+
+  try {
+    const canvas = await html2canvas(renderContainer, {
+      scale: 2, useCORS: true, backgroundColor: '#ffffff',
+      logging: false, letterRendering: true
+    });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageW = 210, pageH = 297, margin = 12;
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+
+    if (imgH <= pageH - margin * 2) {
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, imgW, imgH);
+    } else {
+      const pxPerMm = canvas.width / imgW;
+      const slicePxH = (pageH - margin * 2) * pxPerMm;
+      let y = 0, pageIdx = 0;
+      while (y < canvas.height) {
+        const sliceH = Math.min(slicePxH, canvas.height - y);
+        const pc = document.createElement('canvas');
+        pc.width = canvas.width; pc.height = sliceH;
+        const ctx = pc.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pc.width, pc.height);
+        ctx.drawImage(canvas, 0, -y);
+        if (pageIdx > 0) pdf.addPage();
+        pdf.addImage(pc.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, imgW, (sliceH * imgW) / canvas.width);
+        y += slicePxH; pageIdx++;
+      }
+    }
+    pdf.save(`${FILE_PREFIX}-${getDateStr()}.pdf`);
+    hideToast();
+    setTimeout(() => showToast('PDF saved'), 100);
+  } catch (err) {
+    console.error(err);
+    hideToast();
+    setTimeout(() => showToast('PDF generation failed', { error: true }), 100);
+  } finally {
+    document.body.removeChild(renderContainer);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════════
+function resetTemplate() {
+  if (confirm('Reset template to default?\nAll edits (in all languages) will be lost.')) {
+    currentThemeHex = '#F72D74';
+    currentLang = 'th';
+    langContent.th = null;
+    langContent.en = null;
+    langContent.zh = null;
+    document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+    const thBtn = document.querySelector('.lang-btn[data-lang="th"]');
+    if (thBtn) thBtn.classList.add('active');
+    mountTemplate();
+    renderThemeChips();
+    // Theme color UI
+    document.getElementById('themeHexInput').value = '#F72D74';
+    document.getElementById('themeColorInput').value = '#F72D74';
+    document.getElementById('themeHexSwatch').style.setProperty('--current-color', '#F72D74');
+    // Text color UI — also reset back to Konvy pink default
+    document.getElementById('textHexInput').value = '#F72D74';
+    document.getElementById('textColorInput').value = '#F72D74';
+    document.getElementById('textHexSwatch').style.setProperty('--current-color', '#F72D74');
+    // Format toolbar color
+    const ftColor = document.getElementById('ftColor');
+    if (ftColor) ftColor.value = '#F72D74';
+    const ftSwatch = document.getElementById('ftColorSwatch');
+    if (ftSwatch) ftSwatch.style.background = '#F72D74';
+    applyThemeByHex('#F72D74');
+    showToast('Reset complete');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, opts = {}) {
+  toastTextEl.textContent = msg;
+  toastEl.classList.toggle('loading', !!opts.loading);
+  toastEl.classList.toggle('error', !!opts.error);
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  if (!opts.loading) {
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove('show');
+      toastEl.classList.remove('error');
+    }, opts.duration || 2400);
+  }
+}
+function hideToast() {
+  toastEl.classList.remove('show');
+  toastEl.classList.remove('loading');
+  toastEl.classList.remove('error');
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+renderThemeChips();
+renderColorSwatches();
+renderEmojiPicker();
+document.getElementById('ftColorSwatch').style.background = currentThemeHex;
+// Apply Konvy pink as default theme on load (silent)
+applyThemeByHex(currentThemeHex, null, true);
+</script>
+</body>
+</html>
